@@ -1,0 +1,18 @@
+#directories
+bower_components
+node_modules
+dist
+bin/*
+!bin/w3w-fly.js
+third_party_plugins
+
+#files
+*.tgz
+*.log
+
+# generated missions and local project data
+missions/
+projects/
+.env
+data/
+w3w_photos/

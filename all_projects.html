@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>
+        Eagle Eye - Your fields
+    </title>
+    <!-- Favicon -->
+    <link href="img/brand/favicon.png" rel="icon" type="image/png">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+    <!-- Icons -->
+    <!-- CSS Files -->
+    <link href="css/argon-dashboard.css?v=1.1.0" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/theme.css" rel="stylesheet" />
+    <link href="css/pages.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    
+    <!--Add mapbox.js -->
+    <script src="https://api.tiles.mapbox.com/mapbox.js/v3.3.1/mapbox.js"></script>
+    <script src="js/basemap.js"></script>
+    <link
+      href="https://api.tiles.mapbox.com/mapbox.js/v3.3.1/mapbox.css"
+      rel="stylesheet"
+    />
+
+
+    <!--Add draw plugin -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <style type="text/css">
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+}
+
+        #delete, #export {
+            position: absolute;
+            top:50px;
+            right:10px;
+            z-index:100;
+            background:white;
+            color:black;
+            padding:6px;
+            border-radius:4px;
+            font-family: 'Helvetica Neue';
+            cursor: pointer;
+            font-size:12px;
+            text-decoration:none;
+        }
+        #export {
+            top:90px;
+        }
+
+        path.leaflet-clickable {
+    fill: rgb(254,200,64);
+    stroke: rgb(254,200,64);
+}
+
+.leaflet-top.leaflet-left {
+    margin-top: 20%;
+}
+
+div#load_this_project {
+    background: rgba(0,0,0,.8);
+    position: absolute;
+    bottom: 2%;
+    z-index: 9;
+    left: 40%;
+    width: 40%;
+    height: 55px;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+div#load_this_project {
+    display: none;
+}
+
+.forget_it {
+    width: 31%;
+    background: transparent;
+    border: 1px solid #fec840;
+    text-align: center;
+    border-radius: 22px;
+    padding: 5px;
+    color: #fec840;
+    cursor: pointer;
+    float: left;
+    display: inline-block;
+    position: relative;
+}
+
+.load_it {
+    width: 31%;
+    background: #fec840;
+    border: 1px solid #fec840;
+    text-align: center;
+    border-radius: 22px;
+    padding: 5px;
+    color: #222;
+    cursor: pointer;
+    float: left;
+    display: inline-block;
+    position: relative;
+}
+.delete_it {
+    width: 31%;
+    background: transparent;
+    border: 1px solid #fec840;
+    text-align: center;
+    border-radius: 22px;
+    padding: 5px;
+    color: #fec840;
+    cursor: pointer;
+    float: left;
+    display: inline-block;
+    position: relative;
+}
+
+div#load_this_project div {
+    margin-right: 2%;
+}
+
+.delete_it:hover {
+    background: #ff3c3cc7;
+    border-color: #000;
+    color: #fff;
+}
+    </style>
+</head>
+
+<body class="cf">
+    <div id="load_this_project"><span class="cf-selected-title"></span><div class="forget_it">Close</div><div class="delete_it" path="">Delete</div><div class="load_it">Open field</div></div>
+    <aside id="sidenav-main" class="cf-sidebar">
+        <div class="cf-brand">
+            <img src="img/brand/logo.png" alt="Eagle Eye logo">
+            <div><div class="cf-name">Eagle Eye</div><div class="cf-tag">Field scouting · Potensic Atom 2</div></div>
+            <a class="cf-home" href="./index.html">Home</a>
+        </div>
+        <div class="cf-sidebar-scroll">
+            <h1 class="cf-title">Your fields</h1>
+            <p class="cf-lead">Choose a field to see it on the map, then open it.</p>
+            <div id="sidenav-collapse-main" class="cf-project-list"></div>
+        </div>
+        <div class="cf-sidebar-footer">
+            <a class="cf-btn cf-btn-primary" href="./map.html" style="text-decoration:none">+ New field</a>
+        </div>
+    </aside>
+    <div class="main-content">
+
+    <div id='map'></div>
+    
+
+
+    </div>
+    <!-- <script src="js/main_script.js"></script> -->
+        <script>
+
+            L.mapbox.accessToken = 'pk.eyJ1IjoiZWdnbGV6b3NrIiwiYSI6ImNra2Z0NndyczBsYTUydm43Yjh3bDRvMHUifQ.cvUwSVInY69HPVpp1YdVIA';
+var map = L.mapbox.map('map')
+    .setView([38.6008630095356,24.187002848625298], 7)
+    .addLayer(coflySatelliteLayer());
+
+        // Add layers to the map
+        /*
+        L.control.layers({
+            'Satellite Map': L.mapbox.tileLayer('mapbox.satellite', {
+                detectRetina: true
+            }).addTo(map),
+            'Terrain Map': L.mapbox.tileLayer('mapbox.mapbox-terrain-v2', {
+                detectRetina: true
+            })
+        }).addTo(map);
+        */
+
+        //var featureGroup = L.featureGroup().addTo(map);
+
+    </script>
+    <style>
+.leaflet-control-zoom.leaflet-bar.leaflet-control {
+    display: none;
+}
+
+.mapbox-control-info.mapbox-small.mapbox-control-info-right.leaflet-control {
+    display: none !important;
+}
+
+.leaflet-control-layers.leaflet-control {
+    display: none;
+}
+
+.make_it_active {
+    filter: grayscale(0) !important;
+}
+
+.marker_inactive {
+    filter: grayscale(1);
+}
+
+    </style>
+
+    <script type="text/javascript">
+        
+jQuery(document).ready(function() {
+
+    var greenIcon = L.icon({
+        iconUrl: 'img/our_marker.png',
+        /*shadowUrl: 'img/leaf-shadow.png',*/
+
+        iconSize: [50, 73], // size of the icon
+        shadowSize: [50, 64], // size of the shadow
+        //iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+        iconAnchor: [25, 70], // point of the icon which will correspond to marker's location
+        shadowAnchor: [4, 62], // the same for the shadow
+        popupAnchor: [0, -76] // point from which the popup should open relative to the iconAnchor
+    });
+
+
+    // Draw All projects
+    const fs = require('fs');
+    const path = require('path');
+    var running_on = path.resolve(__dirname);
+
+    fs.readdir(running_on + '/projects', { withFileTypes: true }, (err, entries) => {
+        var files = err ? [] : entries.filter(e => e.isDirectory()).map(e => e.name);
+        var listed = 0;
+        files.forEach(file => {
+        // Skip folders that are not complete CoFly projects instead of breaking the whole list
+        var pr_data;
+        try {
+            pr_data = JSON.parse(read_project_preview_data(file));
+        } catch (e) {
+            console.warn('Skipping project folder "' + file + '": ' + e.message);
+            return;
+        }
+        listed++;
+        var coords = pr_data["Center"].split(",");
+        //console.log(coords);
+        jQuery('div#sidenav-collapse-main').append('<div long="' + coords[0] + '"lat="' + coords[1] + '" class="project_button"> <label><i class="fas fa-map-pin"></i>' +pr_data["Name"] + '</label> </div>');
+        // Call Drawing pin func
+        draw_marks(pr_data["Name"],parseFloat(coords[0]),parseFloat(coords[1]));
+        
+
+        });
+        if (listed === 0) {
+            jQuery('div#sidenav-collapse-main').append('<div class="no_projects"><label>No fields yet. Press <b>+ New field</b> to add one.</label></div>');
+        }
+
+    });
+
+
+    // Function gia drawing pins twn project
+    function draw_marks(name,lat,lon){
+        console.log(name,lat,lon);
+        var marker = L.marker(
+            [lon, lat], {
+                title: name,
+                icon: greenIcon
+            }
+        ).addTo(map).bindPopup('<h3>'+name+'</h3>');
+        L.DomUtil.addClass(marker._icon,name);
+
+    }
+
+    
+    // Function that returns the project view json
+    function read_project_preview_data(name){
+        var fs = require('fs');
+        const path = require('path');
+        var running_on = path.resolve(__dirname);
+        var contents = fs.readFileSync(running_on + '/projects/'+name+'/preview_project.json', 'utf8');
+        return contents;
+    }
+
+
+
+    jQuery(document).on("click",".project_button",function() {
+        //console.log("aa");
+        jQuery('.leaflet-objects-pane svg g').remove();
+        jQuery('.project_button').removeClass('prj_active');
+        jQuery(this).addClass('prj_active');
+
+        var long = parseFloat(jQuery(this).attr('long'));
+        var lat = parseFloat(jQuery(this).attr('lat'));
+
+        localStorage.setItem("LoadedProjectCenter",long+","+lat);
+
+        //map.panTo(new L.LatLng(lat, long), 14);
+        //console.log(lat,long);
+        // show the field's own outline (falls back to its centre)
+        if (window.cfFieldLayer) map.removeLayer(window.cfFieldLayer);
+        try {
+            var gj = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'projects', jQuery(this).text().trim(), 'map_data.geojson'), 'utf8'));
+            window.cfFieldLayer = L.geoJson(gj, { style: { color: '#fec840', weight: 3, fillOpacity: 0.08 } }).addTo(map);
+            map.fitBounds(window.cfFieldLayer.getBounds(), { padding: [60, 60], maxZoom: 18 });
+        } catch (e) {
+            map.setView([lat, long], 17);
+        }
+        //jQuery('.img.leaflet-marker-icon.leaflet-zoom-animated.leaflet-clickable').removeClass('marker_inactive');
+
+        jQuery('img.leaflet-marker-icon.leaflet-zoom-animated').addClass('marker_inactive');
+        jQuery('.' + jQuery(this).text().replace(" ", "")).removeClass('marker_inactive');
+        jQuery('.load_it').attr('path', jQuery(this).text().replace(" ", ""));
+        jQuery('.delete_it').attr('path', jQuery(this).text().replace(" ", ""));
+        jQuery('.cf-selected-title').text(jQuery(this).text().trim());
+        jQuery('.delete_it').data('armed', false).text('Delete');
+        jQuery('div#load_this_project').css('display', 'flex').hide().fadeIn(150);
+    });
+
+
+
+
+
+    jQuery('.forget_it').click(function() {
+        jQuery('div#load_this_project').slideUp();
+        jQuery('.leaflet-objects-pane svg g').remove();
+        jQuery('img.leaflet-marker-icon.leaflet-zoom-animated').removeClass('marker_inactive');
+        jQuery('.prj_active').removeClass('prj_active');
+    });
+
+    jQuery('.load_it').click(function() {
+
+        localStorage.setItem("LoadProject", jQuery(this).attr('path'));
+        window.location = "./load_project.html";
+
+    });
+
+
+
+    // Trigger Delete function 
+    jQuery('.delete_it').click(function() {
+        // two-step delete: first click asks, second click (within 4 s) deletes
+        if (!jQuery(this).data('armed')) {
+            const b = jQuery(this);
+            b.data('armed', true).text('Delete permanently?');
+            setTimeout(function() { b.data('armed', false).text('Delete'); }, 4000);
+            return;
+        }
+
+        //localStorage.setItem("LoadProject", jQuery(this).attr('path'));
+        
+        const path = require('path');
+        const fs = require('fs');
+        var running_on = path.resolve(__dirname);
+        
+        
+        var final_path = "" + running_on + "/projects/"+jQuery(this).attr('path');
+        
+        
+        
+        //rmdir directoryname
+        
+        rmDir = function(dirPath) {
+      try { var files = fs.readdirSync(dirPath); }
+      catch(e) { return; }
+      if (files.length > 0)
+        for (var i = 0; i < files.length; i++) {
+          var filePath = dirPath + '/' + files[i];
+          if (fs.statSync(filePath).isFile())
+            fs.unlinkSync(filePath);
+          else
+            rmDir(filePath);
+        }
+      fs.rmdirSync(dirPath);
+    };
+    rmDir(final_path);
+
+
+
+
+    });
+
+
+
+
+});
+
+    </script>
+
+
+  </body>
+
+</html>

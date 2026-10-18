@@ -1,0 +1,21 @@
+{
+ "variant": "model",
+ "split1": {
+  "images": 67,
+  "background": 94.37,
+  "weed": 34.5,
+  "mIoU": 64.43
+ },
+ "split2": {
+  "images": 67,
+  "background": 94.34,
+  "weed": 30.82,
+  "mIoU": 62.58
+ },
+ "split3": {
+  "images": 67,
+  "background": 95.27,
+  "weed": 35.9,
+  "mIoU": 65.59
+ }
+}

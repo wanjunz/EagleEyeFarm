@@ -1,0 +1,14 @@
+{
+  "_note": "FICTIONAL fixture for offline tests only - not a real what3words address. Coordinates are near the CoFly cotton test fields in Larissa, Greece.",
+  "country": "GR",
+  "square": {
+    "southwest": { "lng": 22.405110, "lat": 39.616380 },
+    "northeast": { "lng": 22.405145, "lat": 39.616407 }
+  },
+  "nearestPlace": "Larissa, Thessaly",
+  "coordinates": { "lng": 22.405128, "lat": 39.616394 },
+  "words": "mock.cotton.field",
+  "language": "en",
+  "locale": null,
+  "map": "https://www.openstreetmap.org/?mlat=39.616394&mlon=22.405128#map=19/39.616394/22.405128"
+}

@@ -1,0 +1,40 @@
+/* what3words panels (js/w3w_panel.js, js/field_corners.js). Tokens come from css/theme.css. */
+.w3w_panel { color: var(--ink); }
+.w3w_panel .w3w_title { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 4px 0 8px; }
+.w3w_panel label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 8px 0 4px; }
+.w3w_panel .w3w_row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.w3w_panel .w3w_status { font-size: 12.5px; margin-top: 8px; line-height: 1.5; }
+.w3w_panel .w3w_status:empty { display: none; }
+
+/* result card */
+.w3w_panel .w3w_result { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #E11F26; border-radius: var(--radius-sm); padding: 10px 12px; margin: 10px 0; font-size: 13px; }
+.w3w_panel .w3w_words { color: #C8161D; font-weight: 700; font-size: 15px; word-break: break-all; }
+.w3w_panel .w3w_near { color: var(--muted); margin-bottom: 6px; font-size: 12.5px; }
+.w3w_panel .w3w_table { border-collapse: collapse; width: 100%; }
+.w3w_panel .w3w_table td { padding: 3px 0; border-bottom: 1px solid var(--canvas); }
+.w3w_panel .w3w_table td:first-child { color: var(--muted); width: 40%; }
+.w3w_panel .w3w_table td:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+.w3w_panel details { margin-top: 8px; }
+.w3w_panel details summary { cursor: pointer; color: var(--forest); font-weight: 600; font-size: 12.5px; }
+.w3w_panel details ol { padding-left: 18px; margin: 6px 0 0; font-size: 12.5px; }
+
+/* test mode + samples */
+.w3w_panel .w3w_samples, #field_corners .fc_test { font-size: 12.5px; color: var(--ink); background: var(--leaf-50); border: 1px solid #DCE6C8; border-radius: var(--radius-sm); padding: 8px 10px; margin: 6px 0 8px; line-height: 1.9; }
+.w3w_panel .w3w_chip { display: inline-block; border: 1px solid var(--forest); color: var(--forest); border-radius: 999px; padding: 0 8px; cursor: pointer; line-height: 1.6; font-size: 12px; background: var(--surface); }
+.w3w_panel .w3w_chip:hover { background: var(--forest-50); }
+#field_corners .fc_link { color: var(--forest); font-weight: 600; text-decoration: underline; cursor: pointer; display: inline-block; margin-top: 2px; }
+.w3w_panel .w3w_settings { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+.w3w_panel .w3w_settings summary { cursor: pointer; color: var(--forest); font-weight: 600; }
+.w3w_panel .w3w_settings label { font-weight: 500; }
+
+/* after-the-flight analysis */
+.w3w_panel .w3w_analyze_box { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+.w3w_panel .w3w_sub { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.w3w_panel .w3w_thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+.w3w_panel .w3w_thumbs figure { margin: 0; text-align: center; font-size: 11px; color: var(--muted); }
+.w3w_panel .w3w_thumbs img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; cursor: zoom-in; border-radius: 6px; }
+
+/* Create project: field corners */
+#field_corners .fc_input { display: block; margin-bottom: 8px; }
+.fc_corner_icon span { display: block; width: 24px; height: 24px; line-height: 20px; border-radius: 50%; background: var(--forest); color: #fff;
+    border: 2px solid #fff; text-align: center; font: 700 11px system-ui, sans-serif; box-sizing: border-box; box-shadow: 0 1px 4px rgba(0,0,0,.4); }

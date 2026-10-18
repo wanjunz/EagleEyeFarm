@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.png">
+<title>what3words → Eve waypoints</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  /* Eagle Eye palette (from the logo): forest green, leaf green, warm paper */
+  :root { --bg: #F6F5EF; --panel: #fff; --text: #1D2A21; --muted: #56635A; --accent: #1F5A36; --on-accent: #fff; --tint: #F1F5E8; --w3w: #C8161D; --err: #B3261E; --line: #E1DFD5; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #131a15; --panel: #1d2620; --text: #E8EDE6; --muted: #A3B0A5; --accent: #8CC46A; --on-accent: #10200f; --tint: #233021; --w3w: #FF6B6B; --err: #FF8A80; --line: #2E3A31; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 system-ui, -apple-system, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; }
+  .brand img { width: 44px; height: 44px; background: #fff; border-radius: 10px; padding: 3px; }
+  .brand b { font-size: 18px; color: var(--accent); }
+  .brand small { display: block; color: var(--muted); font-size: 12px; }
+  h1 { font-size: 20px; margin: 10px 0 4px; }
+  h1 span { color: var(--w3w); }
+  .lead { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .card { background: var(--panel); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  input, textarea { width: 100%; font-size: 17px; padding: 10px; border-radius: 8px; border: 1px solid #A9AE9F; background: var(--panel); color: var(--text); font-family: inherit; }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  textarea { min-height: 112px; resize: vertical; }
+  .row { display: flex; gap: 10px; margin-top: 10px; }
+  .row > div { flex: 1; }
+  .check { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 14px; color: var(--text); }
+  .check input { width: auto; }
+  button { width: 100%; margin-top: 12px; padding: 12px; font-size: 16px; font-weight: 600; border: 0; border-radius: 8px; background: var(--accent); color: var(--on-accent); cursor: pointer; }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--accent); }
+  button.small { width: auto; margin: 0; padding: 6px 12px; font-size: 14px; }
+  .test { font-size: 13px; border: 1px solid var(--line); padding: 8px 10px; margin-bottom: 12px; background: var(--tint); border-radius: 8px; }
+  .chip { display: inline-block; border: 1px solid var(--accent); color: var(--accent); border-radius: 12px; padding: 1px 8px; margin: 3px 2px 0 0; font-size: 12px; cursor: pointer; }
+  #map { height: 300px; border-radius: 10px; margin-bottom: 14px; display: none; }
+  .pin { background: var(--w3w); color: #fff; border: 2px solid #fff; border-radius: 50%; width: 26px; height: 26px; line-height: 22px; text-align: center; font: bold 13px system-ui; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  .wp { display: grid; grid-template-columns: 40px 1fr; gap: 4px 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .wp:first-of-type { border-top: 0; }
+  .num { grid-row: span 4; width: 34px; height: 34px; border-radius: 50%; background: var(--w3w); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .words { color: var(--w3w); font-weight: 600; word-break: break-all; }
+  .coord { font: 600 19px ui-monospace, Menlo, monospace; letter-spacing: .2px; }
+  .sub { font-size: 13px; color: var(--muted); }
+  .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .btns a { font-size: 14px; color: var(--accent); align-self: center; margin-left: 4px; }
+  ol.steps { padding-left: 20px; margin: 6px 0 0; }
+  ol.steps li { margin-bottom: 6px; }
+  .error { color: var(--err); }
+  .hint { font-size: 13px; color: var(--muted); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #333; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><img src="logo.png" alt="Eagle Eye logo"><div><b>Eagle Eye</b><small>Field scouting · Potensic Atom 2</small></div></div>
+  <h1><span>///</span> what3words → Potensic Eve</h1>
+  <p class="lead">Potensic Eve doesn't understand what3words. Enter the addresses here to get the coordinates for each waypoint, then add them in Eve.</p>
+
+  <div id="test" class="test" hidden>
+    <b>Test mode</b>: no what3words API key is set on the server, so only the sample addresses work.
+    <div><span class="chip" id="donnelly">Donnelly Field, 4 corners</span></div>
+    <div id="chips"></div>
+  </div>
+
+  <form class="card" id="form">
+    <label for="words">what3words addresses: one per line, in flight order (up to 30)</label>
+    <textarea id="words" placeholder="///donnelly.field.cambridge&#10;///donnelly.field.northeast" autocapitalize="none" autocomplete="off" spellcheck="false" required></textarea>
+    <div class="row">
+      <div><label for="height">Height (m)</label><input id="height" type="number" inputmode="numeric" value="30" min="2" max="120"></div>
+      <div><label for="pitch">Camera angle (°)</label><input id="pitch" type="number" inputmode="numeric" value="-90" min="-90" max="20"></div>
+    </div>
+    <label class="check"><input type="checkbox" id="loop"> Order as a loop around the area (for field corners)</label>
+    <button type="submit">Get waypoint coordinates</button>
+    <p id="msg" class="hint" aria-live="polite"></p>
+  </form>
+
+  <div id="map"></div>
+
+  <section class="card" id="result" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <strong id="count"></strong>
+      <button class="small secondary" type="button" id="copy-all">Copy all</button>
+    </div>
+    <div id="list"></div>
+    <p id="errors" class="error"></p>
+  </section>
+
+  <section class="card" id="howto" hidden>
+    <strong>Add them in Potensic Eve (iPhone)</strong>
+    <ol class="steps">
+      <li>Open <b>Potensic Eve</b>, connect to the Atom 2 (firmware V020 or newer), tap <b>Waypoints</b> and start a new mission.</li>
+      <li>Add waypoint <b>1</b>, then <b>2</b>, and so on, in the order above:
+        <ul>
+          <li>If Eve lets you type or paste a location, use <b>Copy</b> and paste the coordinates.</li>
+          <li>Otherwise, zoom Eve's map to the spot shown by the same numbered pin on the map above, and tap there.</li>
+        </ul></li>
+      <li>For every waypoint set height <b id="h-step">30 m</b>, camera <b id="p-step">-90°</b> and action <b>Take photo</b>.</li>
+      <li>Set the finish action to <b>Return to Home</b>, check that Eve's route matches the map above, keep the drone in sight, and tap <b>Start</b>.</li>
+    </ol>
+    <p class="hint">Android users can also download the mission and load it into Eve automatically with the desktop app's <b>Send to Atom 2</b>.</p>
+    <button class="secondary" type="button" id="download">Android: download mission files</button>
+  </section>
+
+  <p class="hint">Fly within visual line of sight and follow local drone rules. Eve limits height to 120 m above take-off.</p>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const DONNELLY = ['donnelly.field.cambridge', 'donnelly.field.northeast', 'donnelly.field.southeast', 'donnelly.field.southwest'];
+  let map, layer, last;
+
+  // ----- copy (navigator.clipboard needs https; iPhone Safari on a local http address needs the fallback) -----
+  function toast(text) {
+    const t = $('toast'); t.textContent = text; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1400);
+  }
+  async function copy(text, label) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+      else {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '-1000px';
+        document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+        const ok = document.execCommand('copy'); ta.remove();
+        if (!ok) throw new Error('copy failed');
+      }
+      toast('Copied ' + (label || ''));
+    } catch (e) { toast('Copy failed: press and hold to copy'); }
+  }
+
+  // ----- test mode samples -----
+  fetch('api/config').then(r => r.json()).then(cfg => {
+    if (!cfg.testMode) return;
+    $('test').hidden = false;
+    $('chips').innerHTML = '<details><summary>Add one sample address</summary>' + cfg.samples.map(s => '<span class="chip" data-w="' + s.words + '">///' + s.words + '</span>').join('') + '</details>';
+  });
+  $('donnelly').addEventListener('click', () => {
+    $('words').value = DONNELLY.map(w => '///' + w).join('\n');
+    $('loop').checked = true;
+    $('form').requestSubmit();
+  });
+  $('chips').addEventListener('click', e => {
+    const w = e.target.dataset && e.target.dataset.w;
+    if (!w) return;
+    const cur = $('words').value.trim();
+    $('words').value = (cur ? cur + '\n' : '') + '///' + w;
+  });
+
+  // ----- convert -----
+  function body() {
+    return JSON.stringify({ words: $('words').value, height: $('height').value, gimbalPitch: $('pitch').value, loop: $('loop').checked });
+  }
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    $('msg').className = 'hint'; $('msg').textContent = 'Looking up…';
+    try {
+      const res = await fetch('api/waypoints', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ? data.error.message : 'Lookup failed');
+      last = data;
+      show(data);
+    } catch (err) {
+      $('msg').className = 'error'; $('msg').textContent = err.message;
+    }
+  });
+
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function show(d) {
+    $('msg').className = d.problems.length ? 'error' : 'hint';
+    $('msg').textContent = d.problems.join(' ') || (d.testMode ? 'Test mode: sample addresses.' : '');
+    $('count').textContent = d.waypoints.length + ' waypoint' + (d.waypoints.length === 1 ? '' : 's') +
+      (d.waypoints.length > 1 ? ' · route ' + d.loopLengthM + ' m' : '');
+    const list = $('list'); list.replaceChildren();
+    d.waypoints.forEach(w => {
+      const row = el('div', 'wp');
+      row.append(el('div', 'num', String(w.n)));
+      row.append(el('div', 'words', '///' + w.words));
+      row.append(el('div', 'coord', w.decimal));
+      row.append(el('div', 'sub', w.dms + (w.nearestPlace ? ' · ' + w.nearestPlace : '')));
+      const btns = el('div', 'btns');
+      const b = (label, text, what) => { const x = el('button', 'small', label); x.type = 'button'; x.onclick = () => copy(text, what); return x; };
+      btns.append(b('Copy', w.decimal, w.n + ': ' + w.decimal), b('Lat', w.lat, 'latitude'), b('Long', w.lng, 'longitude'));
+      const a = el('a', null, 'Apple Maps'); a.href = w.appleMaps; a.target = '_blank'; btns.append(a);
+      row.append(btns);
+      list.append(row);
+    });
+    $('errors').textContent = d.errors.map(x => x.input + ': ' + x.message).join('\n');
+    $('h-step').textContent = d.height + ' m'; $('p-step').textContent = d.gimbalPitch + '°';
+    $('result').hidden = $('howto').hidden = d.waypoints.length === 0;
+    $('download').hidden = d.problems.length > 0 || d.waypoints.length === 0;
+    drawMap(d);
+  }
+
+  function drawMap(d) {
+    if (!d.waypoints.length) return;
+    $('map').style.display = 'block';
+    if (!map) {
+      map = L.map('map');
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        { maxZoom: 21, maxNativeZoom: 19, attribution: 'Imagery &copy; Esri, Maxar' }).addTo(map);
+    }
+    if (layer) layer.remove();
+    const pts = d.waypoints.map(w => [w.latitude, w.longitude]);
+    const items = d.waypoints.map(w => L.marker([w.latitude, w.longitude], {
+      icon: L.divIcon({ className: '', html: '<div class="pin">' + w.n + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] })
+    }).bindPopup('<b>' + w.n + '</b> ///' + w.words + '<br>' + w.decimal));
+    if (pts.length > 1) items.unshift(L.polyline($('loop').checked && pts.length > 2 ? pts.concat([pts[0]]) : pts, { color: '#ffffff', weight: 3, dashArray: '6 6' }));
+    layer = L.featureGroup(items).addTo(map);
+    setTimeout(() => { map.invalidateSize(); map.fitBounds(layer.getBounds(), { padding: [30, 30], maxZoom: 19 }); }, 0);
+  }
+
+  $('copy-all').addEventListener('click', () => last && copy(last.text, 'all waypoints'));
+
+  $('download').addEventListener('click', async () => {
+    const res = await fetch('api/mission.zip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body() });
+    if (!res.ok) { toast('Download failed'); return; }
+    const url = URL.createObjectURL(await res.blob());
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'atom2-mission.zip' });
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "_note": "SAMPLE for testing only - not a real what3words address. Corner of Donnelly Field, Cambridge, MA (OpenStreetMap park boundary).",
+  "country": "US",
+  "square": {
+    "southwest": {
+      "lng": -71.0922977,
+      "lat": 42.3715664
+    },
+    "northeast": {
+      "lng": -71.0922613,
+      "lat": 42.3715934
+    }
+  },
+  "nearestPlace": "Cambridge, Massachusetts \u2014 Donnelly Field (north-west corner)",
+  "coordinates": {
+    "lng": -71.0922795,
+    "lat": 42.3715799
+  },
+  "words": "donnelly.field.cambridge",
+  "language": "en",
+  "locale": null,
+  "map": "https://www.openstreetmap.org/?mlat=42.3715799&mlon=-71.0922795#map=19/42.3715799/-71.0922795"
+}

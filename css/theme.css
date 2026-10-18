@@ -1,0 +1,127 @@
+/* ==========================================================================
+   CoFly design system: palette from the logo (forest green, leaf green, soil)
+   Used by every page except the launch screen (index.html).
+   ========================================================================== */
+:root {
+    --forest: #1F5A36;          /* primary: logo bird */
+    --forest-700: #17462A;
+    --forest-50: #EAF2EC;
+    --leaf: #6E9238;            /* accent: logo leaves */
+    --leaf-50: #F1F5E8;
+    --soil: #8B5A2B;            /* logo soil line */
+    --canvas: #F6F5EF;          /* sidebar background (warm paper) */
+    --surface: #FFFFFF;
+    --border: #E1DFD5;
+    --border-strong: #C9C6B8;
+    --ink: #1D2A21;
+    --muted: #56635A;
+    --subtle: #7D877F;
+    --danger: #B3261E;
+    --danger-50: #FCECEA;
+    --warning: #8A5300;
+    --warning-50: #FFF3DC;
+    --success: #23703F;
+    --focus: 0 0 0 3px rgba(31, 90, 54, 0.25);
+    --radius: 10px;
+    --radius-sm: 8px;
+    --sidebar-w: 392px;
+    --shadow: 0 1px 2px rgba(29, 42, 33, 0.06), 0 2px 8px rgba(29, 42, 33, 0.06);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- base ---------- */
+body.cf { margin: 0; font-family: var(--font); color: var(--ink); background: var(--canvas); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+body.cf *, body.cf *::before, body.cf *::after { box-sizing: border-box; }
+
+/* ---------- layout: sidebar + map ---------- */
+.cf-sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); z-index: 20;
+    display: flex; flex-direction: column; background: var(--canvas); border-right: 1px solid var(--border);
+    background-image: none !important;
+}
+.cf-sidebar-scroll { flex: 1; overflow-y: auto; padding: 4px 20px 20px; }
+.cf-sidebar-footer { padding: 12px 20px 16px; border-top: 1px solid var(--border); background: var(--canvas); display: flex; gap: 8px; flex-wrap: wrap; }
+body.cf .main-content { margin-left: var(--sidebar-w) !important; height: 100vh; position: relative; }
+body.cf .main-content #map, body.cf #map { height: 100vh; }
+
+/* ---------- brand header ---------- */
+.cf-brand { display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; border-bottom: 1px solid var(--border); background: var(--canvas); }
+.cf-brand img { width: 40px; height: 40px; }
+.cf-brand .cf-name { font-weight: 700; font-size: 17px; color: var(--forest); letter-spacing: 0.2px; line-height: 1.1; }
+.cf-brand .cf-tag { font-size: 12px; color: var(--muted); }
+.cf-brand .cf-home { margin-left: auto; font-size: 13px; color: var(--forest); text-decoration: none; padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border); background: var(--surface); }
+.cf-brand .cf-home:hover { background: var(--forest-50); }
+
+/* ---------- typography ---------- */
+.cf-title { font-size: 20px; font-weight: 700; margin: 16px 0 2px; color: var(--ink); }
+.cf-lead { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; }
+.cf-section { margin: 18px 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.cf-hint { font-size: 12.5px; color: var(--muted); margin: 4px 0 0; }
+
+/* ---------- cards ---------- */
+.cf-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.cf-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cf-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; }
+.cf-stat .k { font-size: 11.5px; color: var(--muted); }
+.cf-stat .v { font-size: 16px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-stat .v span, .cf-stat .v input { all: unset; font: inherit; color: inherit; width: 100%; }
+
+/* ---------- form fields ---------- */
+.cf-field { margin-bottom: 10px; }
+.cf-field > label, .cf-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.cf-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cf-input, body.cf .cf-sidebar input.input_main, body.cf .cf-sidebar select.input_main, body.cf .cf-sidebar textarea {
+    width: 100%; font: inherit; font-size: 14px; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--border-strong) !important; border-radius: var(--radius-sm); padding: 8px 10px; margin: 0; min-height: 38px;
+}
+body.cf .cf-sidebar input.input_main:focus, body.cf .cf-sidebar select.input_main:focus, .cf-input:focus { outline: none; box-shadow: var(--focus); border-color: var(--forest) !important; }
+body.cf .cf-sidebar input:disabled { background: var(--canvas); color: var(--muted); }
+.cf-unit { position: relative; }
+.cf-unit input { padding-right: 42px !important; }
+.cf-unit::after { content: attr(data-unit); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12.5px; color: var(--subtle); pointer-events: none; }
+body.cf .cf-sidebar input[type=checkbox] { width: 16px; height: 16px; min-height: 0; accent-color: var(--forest); vertical-align: -3px; margin-right: 6px; }
+
+/* ---------- buttons (one system for every page) ---------- */
+body.cf .button_full, body.cf .button_hollow, .cf-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; float: none; margin: 6px 0 0;
+    font: 600 14px/1.2 var(--font); letter-spacing: 0; text-transform: none; text-align: center;
+    padding: 10px 14px; min-height: 40px; border-radius: var(--radius-sm); cursor: pointer; user-select: none;
+    transition: background-color .15s, border-color .15s, box-shadow .15s;
+}
+body.cf .button_full, .cf-btn-primary { background: var(--forest); color: #fff; border: 1px solid var(--forest); }
+body.cf .button_full:hover, .cf-btn-primary:hover { background: var(--forest-700); border-color: var(--forest-700); }
+body.cf .button_hollow, .cf-btn-secondary { background: var(--surface); color: var(--forest); border: 1px solid var(--border-strong); }
+body.cf .button_hollow:hover, .cf-btn-secondary:hover { border-color: var(--forest); background: var(--forest-50); }
+.cf-btn-ghost { background: transparent; color: var(--forest); border: 1px solid transparent; }
+.cf-btn-ghost:hover { background: var(--forest-50); }
+.cf-btn-danger { background: var(--surface); color: var(--danger); border: 1px solid #E8B4B0; }
+.cf-btn-danger:hover { background: var(--danger-50); }
+.cf-btn-sm { min-height: 32px; padding: 6px 10px; font-size: 13px; width: auto; }
+.cf-sidebar-footer .cf-btn, .cf-sidebar-footer .button_full, .cf-sidebar-footer .button_hollow { flex: 1; margin: 0; width: auto; min-width: 0; }
+body.cf .busy { opacity: .55; pointer-events: none; }
+
+/* ---------- status messages ---------- */
+.cf-note { font-size: 12.5px; border-radius: var(--radius-sm); padding: 8px 10px; background: var(--leaf-50); color: var(--ink); border: 1px solid #DCE6C8; }
+.cf-note.warn { background: var(--warning-50); border-color: #F1D9A6; color: var(--warning); }
+.cf-note b { color: inherit; }
+body.cf .error, body.cf .w3w_status.error, body.cf .wf_out.error { color: var(--danger) !important; }
+body.cf .warn { color: var(--warning) !important; }
+
+/* ---------- collapsible sections ---------- */
+details.cf-collapse { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 10px; box-shadow: var(--shadow); }
+details.cf-collapse > summary { list-style: none; cursor: pointer; padding: 12px 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+details.cf-collapse > summary::-webkit-details-marker { display: none; }
+details.cf-collapse > summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .15s; }
+details.cf-collapse[open] > summary::after { transform: rotate(-135deg); }
+details.cf-collapse > .cf-collapse-body { padding: 0 14px 14px; }
+details.cf-collapse > summary .cf-sub { font-weight: 400; color: var(--muted); font-size: 12.5px; }
+
+/* ---------- toast (legacy #toast container) ---------- */
+body.cf #toast { z-index: 1000; }
+
+/* ---------- Leaflet tweaks ---------- */
+body.cf .leaflet-bar a { color: var(--ink); }
+body.cf .leaflet-popup-content { font-family: var(--font); font-size: 13px; }
+
+/* ---------- small screens ---------- */
+@media (max-width: 900px) { :root { --sidebar-w: 340px; } }

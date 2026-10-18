@@ -1,0 +1,23 @@
+{
+  "_note": "SAMPLE for testing only - not a real what3words address. Corner around the CoFly-WeedDB cotton field (Larissa, Greece) whose drone photos are used for testing.",
+  "country": "GR",
+  "square": {
+    "southwest": {
+      "lng": 22.6434325,
+      "lat": 39.5406365
+    },
+    "northeast": {
+      "lng": 22.6434675,
+      "lat": 39.5406635
+    }
+  },
+  "nearestPlace": "Larissa, Thessaly \u2014 CoFly cotton field (south-west corner)",
+  "coordinates": {
+    "lng": 22.64345,
+    "lat": 39.54065
+  },
+  "words": "larissa.cotton.southwest",
+  "language": "en",
+  "locale": null,
+  "map": "https://www.openstreetmap.org/?mlat=39.54065&mlon=22.64345#map=18/39.54065/22.64345"
+}

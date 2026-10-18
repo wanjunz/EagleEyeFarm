@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Eagle Eye - Fly to one spot</title>
+    <link href="img/brand/favicon.png" rel="icon" type="image/png">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/w3w_panel.css">
+    <link rel="stylesheet" href="css/atom2_workflow.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <!-- With Node integration on, jQuery would attach to Node's "module" instead of window; hide it while libraries load -->
+    <script>window.__nodeModule = module; module = undefined;</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>module = window.__nodeModule;</script>
+    <script src="js/basemap.js"></script>
+</head>
+
+<body class="cf">
+    <aside class="cf-sidebar">
+        <div class="cf-brand">
+            <img src="img/brand/logo.png" alt="Eagle Eye logo">
+            <div><div class="cf-name">Eagle Eye</div><div class="cf-tag">Field scouting · Potensic Atom 2</div></div>
+            <div class="cf-home" id="go_home">Home</div>
+        </div>
+
+        <div class="cf-sidebar-scroll">
+            <h1 class="cf-title">Fly to one spot</h1>
+            <p class="cf-lead">Send the drone to a single 3 m square, identified by its what3words address, for one close-up photo. Then check that spot's crop health and weeds.</p>
+
+            <div id="w3w_panel" class="w3w_panel cf-steps">
+                <div class="cf-step">
+                    <h3>Find the square</h3>
+                    <label for="w3w_words" style="margin-top:0">what3words address</label>
+                    <input id="w3w_words" class="input_main" placeholder="///filled.count.soap" autocomplete="off" spellcheck="false">
+                    <div class="w3w_row">
+                        <div><label for="w3w_height">Height</label><div class="cf-unit" data-unit="m"><input id="w3w_height" type="number" class="input_main" value="30" min="2" max="120"></div></div>
+                        <div><label for="w3w_pitch">Camera angle</label><div class="cf-unit" data-unit="°"><input id="w3w_pitch" type="number" class="input_main" value="-90" min="-90" max="20"></div></div>
+                    </div>
+                    <div id="w3w_find" class="button_full">Find square</div>
+                    <div id="w3w_result" class="w3w_result" style="display:none;"></div>
+                    <div id="w3w_status" class="w3w_status"></div>
+                </div>
+
+                <div class="cf-step">
+                    <h3>Send it to the drone</h3>
+                    <p class="cf-hint" style="margin:0 0 6px"><b>Android:</b> plug in the phone and replace any mission saved in Potensic Eve.
+                        <b>iPhone:</b> open “iPhone: enter by hand in Eve” on the result card and copy the values into Eve.</p>
+                    <div id="w3w_atom2_actions" style="display:none;">
+                        <label for="w3w_eve_mission">Eve mission to replace (Android)</label>
+                        <select id="w3w_eve_mission" class="input_main"><option value="">Connect phone, then refresh</option></select>
+                        <div id="w3w_refresh_missions" class="button_hollow">Find phone missions</div>
+                        <div id="w3w_push" class="button_full">Send to Atom 2</div>
+                        <div id="w3w_save" class="button_hollow">Save mission files</div>
+                    </div>
+                    <p class="cf-hint">Then in Potensic Eve: Waypoints → open the mission → check the point → <b>Start</b>. Keep the drone in sight.</p>
+                </div>
+
+                <div class="cf-step">
+                    <h3>Check the photo</h3>
+                    <div id="w3w_analyze_box">
+                        <p class="cf-hint" style="margin:0 0 4px">After the flight, pick the photo from the drone's SD card to check crop health and weeds.</p>
+                        <div id="w3w_analyze" class="button_hollow">Analyse the photo</div>
+                        <div id="w3w_analysis" class="w3w_result" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <details class="w3w_settings">
+                    <summary>what3words settings</summary>
+                    <label>API key (paid plan)<input id="w3w_api_key" type="password" class="input_main" placeholder="paste your key"></label>
+                    <label><input id="w3w_mock" type="checkbox"> Test mode (sample addresses only)</label>
+                </details>
+            </div>
+        </div>
+    </aside>
+    <div class="main-content"><div id="map"></div></div>
+
+    <script>
+        const path = require('path');
+        window.coflyW3WOutputDir = __dirname;   // saves to missions/atom2/<id>, same folder as the CLI
+        window.coflyMap = L.map('map', { zoomControl: true }).setView([39.6, 22.4], 6).addLayer(coflySatelliteLayer());
+        jQuery('#go_home').click(function() { window.location = './index.html'; });
+    </script>
+    <script src="js/w3w_panel.js"></script>
+</body>
+
+</html>

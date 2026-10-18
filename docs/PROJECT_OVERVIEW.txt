@@ -1,0 +1,598 @@
+================================================================================
+ EAGLE EYE
+ Field Scouting with an Affordable Drone and what3words
+================================================================================
+
+ Part 1 - What it does (for farmers, partners and supporters)
+ Part 2 - Technical specification (for engineers and reviewers)
+
+ Repository:  https://github.com/wanjunz/cofly-w3w-atom2  (private)
+ Based on:    the open-source CoFly-GUI (https://github.com/ElsevierSoftwareX/SOFTX-D-23-00036), MIT licence
+
+
+================================================================================
+ PART 1 - WHAT IT DOES
+================================================================================
+
+THE PROBLEM
+-----------
+Walking a field to find weeds, dry spots or struggling crops takes hours, and
+problems are easy to miss until they spread. Professional mapping drones and
+agronomy software often cost thousands of dollars. Many small farms can't
+justify that.
+
+THE IDEA
+--------
+This project turns a low-cost consumer drone, the Potensic Atom 2, into a field
+scouting tool. Software that runs on an ordinary laptop does the analysis.
+
+WHAT YOU CAN DO WITH IT
+-----------------------
+* Describe your field with four what3words addresses
+  Every 3 m x 3 m square on Earth has a unique three-word name, such as
+  ///filled.count.soap. Enter the four corners of your field and the app draws
+  it on a satellite map and works out its size. No surveying, no drawing by
+  hand.
+
+* Plan the flight automatically
+  The app plans a back-and-forth route over the whole field, with photos
+  spaced so they overlap. It estimates flight time and splits long flights
+  into battery-sized parts. Missions are built for the drone's own app,
+  Potensic Eve.
+
+* See your whole field from above
+  After the flight, import the photos straight from the drone's memory card.
+  The app matches the overlapping photos in 3D (structure from motion) and
+  joins them into one seamless, true-to-scale map of the field, then checks
+  that map for crop health and weeds. Without the 3D-matching software it
+  places each photo by its GPS position instead.
+
+* Crop-health maps
+  The field is coloured from red (stressed or bare) to green (healthy), using
+  four crop-health measures that work from ordinary colour photos. The app
+  marks the patches that need attention with numbered pins.
+
+* Weed maps
+  A model trained on expert-labelled drone photos of a real cotton field
+  outlines likely weed patches in purple and reports how much of the field
+  they cover.
+
+* One number for crop health, one for weeds
+  After the analysis, Eagle Eye sums up the whole field in two numbers:
+  a crop-health score out of 100 (for example 96 = Good) and the share of the
+  field with weeds (for example 4.4% = Moderate). One click shows on the map
+  exactly which spots need a look and why: thin crop, pale crop or bare
+  patches.
+
+* Send the drone back for a closer look
+  One click plans a low flight over each problem patch, for close-up photos
+  that the weed check analyses again.
+
+* Fly to one spot
+  Type one what3words address and the drone goes to that square, takes a
+  photo, and the app checks that spot for crop health and weeds.
+
+* Works on the phone too
+  A simple web page turns what3words addresses into the exact coordinates to
+  enter in the drone app on iPhone, with a map of numbered pins.
+
+WHY IT MATTERS
+--------------
+* Low cost: a consumer drone plus free, open-source software.
+* Saves time: scout a whole field in one short flight instead of walking it.
+* Targeted action: treat or check only the patches that need it. That saves
+  herbicide, fertiliser and labour.
+* Easy to share: a what3words address is easy to say, text or write down when
+  telling a worker or advisor exactly where the problem is.
+* Grounded in research: the methods follow published drone and satellite
+  farming research. The project README reviews 15 papers.
+
+TESTED ON A REAL FARM
+---------------------
+The full workflow was run on 365 real drone photos of a cotton field in
+Larissa, Greece (the public CoFly-WeedDB dataset):
+* All photos landed in the right place on the satellite map.
+* Weeds covered 4.4% of the field in the weed map. Experts' labels cover about
+  4.3-4.4% of the same photos.
+* The whole field was analysed in about 7.5 minutes on a laptop.
+
+WHAT TO KNOW (HONEST LIMITS)
+----------------------------
+* The drone app still needs one tap: Potensic offers no way for outside
+  software to launch the drone. The pilot presses Start in the Eve app.
+  On Android, missions load automatically; on iPhone, waypoints are entered by
+  hand from the coordinates the app provides.
+* Colour camera only: the Atom 2 has no thermal or near-infrared camera.
+  Red areas mean "go and look", not a diagnosis. Early water stress, early
+  disease and exact nitrogen levels need specialised cameras.
+* Weed detection is good, not perfect: it finds weed patches, not species. It
+  was trained on cotton, so other crops need extra training data to reach the
+  same accuracy.
+* Real what3words addresses need a paid what3words API key. A free test mode
+  uses sample addresses (Donnelly Field, Cambridge MA; and the Greek test
+  field).
+* Always fly within sight and follow local drone rules.
+
+COMING NEXT (PLANNED, NOT YET BUILT)
+------------------------------------
+* Irrigation check: map wet and dry soil around drip lines, spot dry gaps and
+  waterlogged spots, and compare with recent rainfall.
+* Changes over time: compare repeat flights to see which areas get worse.
+* Deep-learning weed model: a larger neural network for higher accuracy.
+
+
+================================================================================
+ PART 2 - TECHNICAL SPECIFICATION
+================================================================================
+
+2.1 SYSTEM OVERVIEW
+-------------------
+Layer             Technology / location
+----------------  -----------------------------------------------------------
+Desktop app       Electron 33 (upgraded CoFly-GUI), Leaflet maps, jQuery UI
+Analysis engine   Node.js modules in js/analysis/; image handling with sharp
+                  (libvips); no Python or GPU needed at run time
+Drone link        js/drones/: Potensic Eve mission files, Android push via adb
+what3words        js/w3w/: REST API v3 client, waypoint conversion, test mode
+Phone web page    Express server in server/ (password protected, rate limited)
+Command line      bin/w3w-fly.js
+Model training    Python + scikit-learn, offline only (tools/)
+Tests             61 automated tests (node --test), including real-data
+                  regression tests
+
+Every analysis step reads and writes files in the project folder
+(projects/<name>/...), so steps can be rerun and results reload when a project
+is reopened.
+
+End-to-end flow:
+  4 what3words corners -> field polygon -> coverage path -> Eve mission
+  -> flight -> SD-card photos -> import (EXIF)
+  -> 3D matching (structure from motion) -> orthomosaic -> 30 m tiles
+     (or: per-photo analysis, photos placed by GPS)
+  -> crop health + weeds + problem areas + field summary -> field maps
+  -> close-up mission over problem areas -> close-up weed analysis
+
+2.2 WHAT3WORDS
+--------------
+Files: js/w3w/what3words.js, js/w3w/waypoints.js, js/field_corners.js
+
+* Lookup: GET https://api.what3words.com/v3/convert-to-coordinates
+  (key sent as the X-Api-Key header). Returns the centre coordinates and the
+  3 m square.
+* Input checks: a Unicode-aware pattern for "word.word.word", with optional
+  "///" in front.
+* Repeat lookups are cached in memory.
+* API errors (BadWords, InvalidKey, quota 402, network) become plain-language
+  messages.
+* Test mode: used automatically when no API key is set. Sample fixtures live in
+  test/fixtures/w3w/. These are made-up addresses at real places: the four
+  Donnelly Field corners (from the OpenStreetMap park boundary), four Larissa
+  cotton-field corners, plus filled.count.soap (a real example address from the
+  what3words documentation).
+* Field corners: the four results are sorted by angle around their centre, so
+  the outline never crosses itself. Area is computed with
+  @mapbox/geojson-area; fields under 100 m2 are rejected.
+* Waypoint conversion for iPhone (Eve does not accept what3words):
+  - up to 30 addresses become numbered waypoints;
+  - formats: decimal to 6 decimal places (~0.1 m), degrees-minutes-seconds,
+    Apple Maps and Google Maps links;
+  - optional clockwise loop order for field corners;
+  - duplicate and invalid addresses are reported separately, without stopping
+    the rest.
+
+2.3 FLIGHT PLANNING AND THE POTENSIC ATOM 2
+-------------------------------------------
+Files: js/analysis/path_planner.js, js/drones/potensic_atom2.js,
+       js/drones/adb_transfer.js
+
+Coverage path:
+* Projection: the field is converted to a local east/north metre grid
+  (equirectangular, around the field centre), then rotated to the chosen
+  flight direction.
+* Lines: horizontal scan lines are intersected with the polygon (even-odd
+  rule); no-fly zone intervals are subtracted; lines alternate direction
+  (serpentine).
+* Photo footprint: width = 2 x height x tan(horizontal FOV / 2).
+* Spacing:
+  - between lines = footprint width x (1 - 0.65 side overlap)
+  - between photos = footprint length x (1 - 0.75 front overlap)
+  Photo waypoints are placed along each line, because the Atom 2 only takes
+  mission photos at waypoints.
+* Outputs: waypoints, line count, flight time (distance / speed + hover time)
+  and area.
+* Close-up flights: problem points are ordered by nearest neighbour, flown at
+  6 m by default.
+* Fixes compared with CoFly's planner: CoFly's projection swapped latitude and
+  longitude, which distorted spacing and failed beyond about +/-85 degrees
+  longitude.
+
+Eve mission format (unofficial; reverse-engineered by the HOT Drone Tasking
+Manager team):
+* Files: global.json (finishAction, lostAction, speed, ...) and <id>.json,
+  holding "[waypoints];[pois]".
+* Each waypoint: lat, lng, height, hoverTime, gimbalPitch, yaw, action PHOTO.
+* Safety checks: height 2-120 m, gimbal -90..+20 degrees, speed up to 15 m/s.
+  Missions are split at 99 points.
+* Android: adb lists existing missions in
+  /sdcard/Android/data/com.ipotensic.atom/files/Waypoint/, overwrites one with
+  `adb push`, then force-stops Eve so it reloads.
+  (Eve deletes mission folders it did not create, so a placeholder mission
+  made in Eve is overwritten.) adb is found in common install locations.
+* iPhone: app files cannot be written from outside, so the app outputs
+  coordinates and an "enter in Eve" step list instead.
+
+2.4 PHOTO IMPORT
+----------------
+File: js/analysis/photos.js
+
+* EXIF read with piexifjs: GPS (degrees/minutes/seconds to decimal), capture
+  time, camera make and model.
+* Image size: read from the JPEG frame header, without decoding the image.
+* Camera field of view by model:
+  - DJI FC6310 (Phantom 4 Pro): 73.7 degrees
+  - Potensic Atom 2: about 80 degrees (ASSUMED; Potensic doesn't publish it;
+    can be overridden)
+* Ground footprint comes from the flight height entered (EXIF altitude is
+  above sea level, not above the field).
+* Photo direction (heading):
+  - "north": missions from this app (default);
+  - "travel" and "travel-reverse": bearing between neighbouring photo
+    positions, for photos from other apps.
+  The default was confirmed on CoFly's DJI photos: crop rows only line up
+  across neighbouring photos with a fixed heading.
+* Photos without GPS are matched in order to the planned waypoints.
+ 
+2.5 ORTHOMOSAIC / FIELD MAP STITCHING
+-------------------------------------
+Two methods. Step 4 offers "Automatic" (default: B when Docker is running and
+the scan has at least 5 photos, otherwise A, with a note saying why),
+"3D matching only" (B) and "GPS placement only" (A). Both produce the same
+analysis.json and six map layers, so later steps work the same way.
+
+A. GPS-based mosaic (js/analysis/mosaic.js)
+   * Each footprint corner is rotated by heading into a local east/north
+     frame. The union of all footprints defines the canvas.
+   * Canvas: native resolution, capped at 5000 px on the long side.
+   * Each tile: sharp resizes it, rotates it with a transparent background
+     and composites it onto the canvas, in batches of 60.
+   * The canvas edges become latitude/longitude bounds for a Leaflet image
+     overlay.
+   * The same layout renders every layer: photos, the four index maps, and
+     weeds. Layers therefore line up exactly.
+   * Limits:
+     - not orthorectified: assumes flat ground and a straight-down camera;
+     - no feature matching: neighbouring photos can be offset by the GPS
+       error (typically 1-3 m).
+
+B. Structure from motion (js/analysis/stitching.js, js/analysis/ortho_analysis.js)
+   * Why: photos straight off the drone have 1-3 m GPS error, slight camera
+     tilt, and the ground is not flat. OpenDroneMap finds features in every
+     photo, matches them between overlapping photos, solves every camera's
+     position and angle with a 3D point cloud (bundle adjustment), builds
+     the surface and projects the photos onto it: one seamless orthomosaic.
+   * Run: docker run opendronemap/odm:3.6.2 --fast-orthophoto --skip-3dmodel
+     --skip-report --feature-quality medium --orthophoto-resolution 2
+     (capped by ODM at the photos' own ground resolution). Photos whose
+     position came from the flight plan are passed in geo.txt (--geo).
+   * Re-projection and bounds: GDAL Python bindings inside the same container
+     warp to EPSG:4326 with square ground pixels (the image has no gdalinfo
+     on its PATH).
+   * Analysis: shared colour ranges from a 1500 px copy; the map is cut into
+     ~30 m tiles at full resolution and each tile runs through the same code
+     as a photo (indices, problem areas, weed windows, 4 m summary areas).
+     Transparent no-data pixels are ignored everywhere; summary areas less
+     than half covered are dropped; tiles under 5% covered are skipped;
+     field-wide numbers are weighted by tile coverage.
+   * Memory: if Docker runs out of memory (exit 137), the reconstruction is
+     kept and texturing is retried once at 4 cm/px (--rerun-from
+     odm_meshing), with a note on raising Docker's memory.
+   * Results are kept in scans/<id>/sfm/ and reused unless photos change;
+     ODM's working files (~1 GB per scan) are deleted, orthophotos kept.
+   * No crop: typical green cover under 5% -> "No crop seen" instead of a
+     crop-health score (it would only compare soil colours).
+   * Tested: 40 overlapping photos of an Ohio farm (CC0 dataset): 26 photos
+     in one reconstruction, seamless map at 2.2 cm/px matching satellite
+     imagery, 50 tiles analysed; ODM ~6.5 min + analysis ~3.5 min on an
+     8 GB MacBook (Docker 4 GB). The Greek CoFly-WeedDB photos fail feature
+     matching (too little overlap), so Automatic uses GPS placement there.
+
+
+2.6 VEGETATION HEALTH ESTIMATION
+--------------------------------
+File: js/analysis/indices.js
+
+* Four RGB indices, computed per pixel as Float32 and clipped to [-1, 1]
+  (formulas from CoFly's MIT-licensed Vegetation-Indices module):
+    GLI   = (2G - R - B) / (2G + R + B)    Green Leaf Index
+    VARI  = (G - R) / (G + R - B)          Visible Atmospherically Resistant Index
+    NGRDI = (G - R) / (G + R)              Normalised Green-Red Difference
+    NGBDI = (G - B) / (G + B)              Normalised Green-Blue Difference
+  (a small constant is added to each denominator)
+* Display range: CoFly's rule.
+  - A 100-bin histogram over [-1, 1]; keep the bins holding more than 5% of
+    valid pixels.
+  - Fallback: the 2nd-98th percentile.
+  - For a field scan, one shared range is computed from a sub-sample of every
+    photo, so colours are comparable across the field.
+* Colour map: matplotlib's RdYlGn, red = low (stressed or bare), green = high
+  (healthy). Transparent where there is no data.
+* Outputs: a colour PNG per photo and per index; mean and low-value share per
+  photo and per field.
+* Limit: RGB only. These indices approximate canopy vigour; they are not
+  NDVI.
+
+2.7 PROBLEM AREA DETECTION
+--------------------------
+File: js/analysis/problem_areas.js
+
+Steps:
+1. Smooth over about 1.5 m with a box blur that ignores missing pixels. It
+   uses running sums, so its cost does not depend on the blur size. This
+   stops bare soil between crop rows from being reported.
+2. Threshold: a pixel is flagged when its value is below
+   min(lowest 25% of the display range, field median - 0.05).
+   The median test stops sensor noise in an evenly healthy field from being
+   flagged.
+3. Clean-up: 5x5 binary closing, then opening. Pixels touching diagonally
+   count as connected (8-connected flood-fill labelling).
+4. Keep patches from 1 m2 up to 60% of the photo.
+5. Merge patches within 4 m of each other (single-linkage), since one close-up
+   photo covers them. Centres are weighted by patch area. This replaces
+   CoFly's k-means grouping into 2-10 clusters.
+6. Convert each centre from photo pixels to latitude/longitude, including the
+   photo's rotation. Merge across photos. Output: up to 20 points per index,
+   also written in CoFly's problematic_areas_points.json format.
+
+Comparison with CoFly's original Python code. Their find_areas and
+find_Lat_Lon were run unmodified on synthetic 50 x 37.5 m maps at 5 cm/px,
+with crop rows every 0.9 m and noise. A patch counts as found if a point lands
+within 1.5 m of its centre.
+
+  Test case                 CoFly original              This project
+  ------------------------  --------------------------  ----------------------
+  two patches               0/2 found, 3 false alarms   2/2 found, 0 false
+  two patches, no rows      crash                       2/2 found, 0 false
+  two patches + map border  0/2 found, 4 false alarms   2/2 found, 0 false
+  healthy field             2 false alarms              0 false alarms
+  one patch                 0/1 found, 2 false alarms   1/1 found, 0 false
+  patches + dark spot       crash                       2/2 found, 0 false
+  twelve patches            2/12 found, 6 false alarms  12/12 found, 0 false
+  worst map-position error  93 m (rows/cols swapped)    0 m
+
+  The harness to reproduce this is in tools/compare_problem_areas/.
+
+2.8 WEED DETECTION
+------------------
+Files: js/analysis/weed_model.js, js/analysis/photo_analysis.js,
+       tools/train_weed_model.py, js/analysis/models/weed_gbt.json
+
+Is it deep learning? NO.
+CoFly's Weed-Detection code (a U-Net with an EfficientNet-B1 encoder) is
+public, but its trained weights file (weights0300.hdf5) has never been
+published anywhere, so that model cannot run. This project uses a trained
+gradient-boosted decision-tree model instead.
+
+Data:
+* CoFly-WeedDB (Krestenitis et al. 2022, CC-BY-4.0): drone photos of cotton,
+  Larissa, Greece, taken by a DJI Phantom 4 Pro at about 5 m.
+* 201 photos with expert labels (3 weed species, merged into "weed").
+
+Cells:
+* The image is resized to 1280x720 and split into 40 x 22 = 880 cells, each
+  about 19 cm on the ground.
+* A cell's label is "weed" if at least half its pixels are labelled weed.
+* Training set: 176,880 cells.
+
+Features (36 per cell, computed by the same JavaScript code during training
+and in the app):
+* 18 basic features:
+  - mean and spread of brightness, Excess Green and saturation;
+  - Excess Red;
+  - brightness-gradient mean and spread (texture), and edge density;
+  - average red, green and blue proportions (chromaticity);
+  - share of green-plant pixels (Excess Green with an automatic Otsu
+    threshold);
+  - brightness and Excess Green relative to the image median;
+  - share of dark and of bright pixels.
+* 2 crop-row features:
+  - the row direction is found by testing angles from 0 to 180 degrees in
+    3-degree steps and choosing the one where green pixels form the sharpest
+    stripes;
+  - row spacing comes from the self-similarity (autocorrelation) of that
+    stripe pattern;
+  - features: each cell's distance to the nearest row (as a fraction of the
+    spacing), and whether rows were found.
+* 14 neighbourhood features: 7 of the basic features averaged over the 3x3
+  and 7x7 surrounding cells.
+* 2 difference features: a cell compared with its neighbourhood.
+
+Model (two-stage "auto-context"):
+* Stage 1: scikit-learn HistGradientBoostingClassifier (250 iterations,
+  31 leaves, learning rate 0.06, minimum 40 samples per leaf, L2 = 1.0).
+* Stage 2: the same classifier, given the 36 features plus stage-1
+  probabilities around each cell (its own; means over 3x3, 7x7 and 15x15
+  cells; maximum over 7x7).
+  Stage 2 is trained on stage-1 predictions made without seeing the same
+  photo (4-fold cross-validation grouped by photo), so it learns from
+  realistic inputs.
+* Output: probabilities averaged over 3x3 cells, then a decision threshold
+  chosen by cross-validation on training photos only (0.25 for the shipped
+  model).
+* Export: both tree ensembles are saved as JSON (0.9 MB) and run in plain
+  JavaScript. The exported model reproduces scikit-learn's probabilities
+  exactly (difference 0.0).
+
+How the app applies it:
+* Each photo is cut into windows about 7.5 m wide (the training scale). Each
+  window is resized to 1280x720, run through the model, and the results are
+  joined back into one weed map per photo.
+* Photos coarser than 2 cm per pixel trigger a "fly lower" warning.
+* Outputs: a transparent purple overlay, the photo with the overlay, weed
+  cover %, and weed patch locations.
+
+Accuracy on CoFly's three published test splits (weed IoU, i.e. overlap with
+the experts' weed outlines, % / background IoU % / mean IoU %):
+
+  Split   CoFly U-Net (reported,      This model         Earlier "green
+          weights unpublished)        (in the app)       between rows" rule
+  -----   -------------------------   ----------------   ------------------
+  1       44.9 / 95.4 / 70.2          34.5 / 94.4 / 64.4  0.6 / 91.7 / 46.2
+  2       43.5 / 95.8 / 69.7          30.8 / 94.3 / 62.6  0.6 / 87.7 / 44.1
+  3       44.0 / 96.6 / 70.3          35.9 / 95.3 / 65.6  0.5 / 88.7 / 44.6
+
+CoFly's model scores about 10 points higher on weed IoU, but it can't be run.
+This model is the most accurate one that actually runs.
+
+Upgrade path: train a U-Net on CoFly-WeedDB on a GPU, export it to ONNX, and
+run it in the app with onnxruntime-node. That would add a real deep-learning
+model without needing Python at run time.
+
+2.9 FIELD HEALTH SUMMARY
+------------------------
+File: js/analysis/field_summary.js
+
+Two headline numbers so the farmer doesn't have to read six maps.
+
+Crop health score (0-100):
+* Each photo is split into areas of about 4 x 4 m on the ground. That is wide
+  enough to span several crop rows, so row spacing isn't mistaken for gaps.
+* For each area:
+  - green canopy cover, using the Canopeo rule (Patrignani & Ochsner 2015):
+    R/G < 0.95, B/G < 0.95 and 2G - R - B > 20. These are fixed thresholds,
+    so every photo is judged the same way. The per-photo Otsu threshold was
+    tried first but split dark-green plants in contrasty photos;
+  - plant greenness: GLI averaged over canopy pixels only;
+  - the share of the area inside stressed/bare patches (section 2.7).
+* An area "needs a look" if:
+  - thin crop: cover < 70% of the field's median cover; or
+  - pale crop: plant GLI more than 0.03 below the field's median; or
+  - patchy: 25% or more of the area is in stressed/bare patches.
+* Score = 100 x (share of areas that do not need a look).
+  Ratings: 85-100 Good, 65-84 Fair, below 65 Poor.
+* The flagged areas are saved with their map corners. "Show where to look"
+  draws them on the map with the reason.
+* Limit: the score compares each part of the field with the rest of the same
+  field, which keeps it consistent across cameras and light conditions. It
+  cannot detect a field that is evenly stressed; compare scans over time for
+  that.
+
+Weeds (%):
+* The share of the photographed field covered by likely weed patches (weed
+  model, section 2.8), averaged over all photos.
+* Ratings: under 2% Low, 2-10% Moderate, over 10% High.
+
+Result on the Greek cotton field (365 photos, 730 areas):
+* Crop health 96/100 (Good). Areas needing a look: 3% thin crop, 1.9% pale
+  crop, 0.4% bare/stressed patches.
+* Weeds 4.4% (Moderate).
+* Checked by eye: flagged areas are sparse or bare spots (field edges, missing
+  plants); the typical areas are full crop rows.
+* Older analyses get the summary added on demand (about 0.2 s per photo)
+  without re-running the full analysis.
+
+2.10 FIELD ANALYSIS PIPELINE
+----------------------------
+File: js/analysis/pipeline.js
+
+* planScan: field polygon + no-fly zones -> coverage waypoints -> Eve
+  missions. Also writes CoFly's calculated_path.json, so the original map
+  drawing still works.
+* importScan: copies the photos to scans/<id>/images and records photo
+  height and heading.
+* analyzeScan (method auto / sfm / gps; sfm = section 2.5 B):
+  - pass 1: index values at 300 px -> one shared colour range per index;
+  - pass 2, per photo (about 1.2 s on Apple Silicon): index maps, problem
+    areas and weed windows;
+  - then the 6 stitched layers (photos, GLI, VARI, NGRDI, NGBDI, weeds), the
+    field health summary (section 2.9) and the field summary (analysis.json).
+* planHotpoints: problem points -> close-up mission (6 m, nearest-neighbour
+  route).
+* importCloseups: weed analysis of the close-up photos.
+* analyzeSinglePhoto: crop health and weeds for one what3words photo, with a
+  warning if the photo's GPS is far from the square.
+
+Measured on the Greek test field (365 photos, 5 m, DJI Phantom 4 Pro):
+* Import: under 1 s. Analysis: about 6.7 min. Stitching: about 40 s.
+* Weed cover: 4.4% (experts' labels: about 4.3-4.4%).
+* GLI problem patches: 0.2% of the area (soil between rows correctly not
+  flagged).
+
+2.11 OTHER ENGINEERING WORK
+---------------------------
+* Upgrades: Electron 5 -> 33 and sharp 0.26 -> 0.33, for Apple Silicon and
+  current Node.js.
+* Removed: CoFly's DJI MQTT radio link and the Windows-only .exe/.bat tools.
+* Maps: the expired Mapbox key was replaced by Esri World Imagery. The deepest
+  available imagery level is detected per location through Esri's tilemap
+  service, which avoids "Map data not yet available" tiles.
+* Fixed:
+  - blank screens after creating or loading a project (asynchronous save
+    race; project names with spaces);
+  - timeline crash on new projects;
+  - Import and Export of projects on current Electron.
+* Web page:
+  - HTTP basic-auth password;
+  - per-IP rate limit (protects the paid what3words quota);
+  - the API key stays on the server;
+  - clipboard fallback for iPhone Safari on plain http.
+
+2.12 IRRIGATION CHECKS (FEASIBILITY - NOT YET IMPLEMENTED)
+----------------------------------------------------------
+The best signal for crop water stress is thermal imaging (canopy temperature),
+which the Atom 2 lacks. RGB-based checks that fit the current pipeline:
+
+1. Wet/dry soil map:
+   - remove plants with the existing Excess Green mask;
+   - classify the remaining soil pixels by brightness and colour (wet soil is
+     darker);
+   - measure how far water spreads from each drip line (drip lines are
+     visible in the Greek photos);
+   - flag dry gaps (possible blocked drippers) and dark standing-water areas
+     (over-watering or poor drainage).
+2. Irrigation-aligned stress: test whether low-index strips run parallel to
+   the drip lines or line up with irrigation zones, using the existing
+   row-direction code.
+3. Change over time: compare index maps from repeat scans.
+4. Rainfall context: recent rainfall for the field from a free weather API
+   (e.g. Open-Meteo; CHIRPS for research use). This separates irrigation
+   faults from weather.
+5. Optional satellite layer: Sentinel-1 or Sentinel-2 irrigation and moisture
+   products for whole-farm context.
+
+Cannot be done with RGB alone: measuring soil moisture, or detecting water
+stress before it is visible. These need thermal cameras or soil sensors.
+
+2.13 TESTING
+------------
+* 61 automated tests (npm test), covering:
+  - what3words parsing, errors and caching;
+  - waypoint conversion and the web API;
+  - Eve mission format and limits; adb commands (with a fake adb);
+  - path planning with no-fly zones;
+  - vegetation indices and problem areas;
+  - the weed model on two real CoFly-WeedDB photos against the experts'
+    labels;
+  - the field health summary (areas, flags, ratings);
+  - orthomosaic tiling, no-data handling and OpenDroneMap arguments;
+  - full end-to-end workflows on GPS-tagged photos.
+* In-app tests: Electron windows driven by scripts with screenshots. Create
+  project from what3words, import, analyse, switch layers, reload.
+* Reproducible evaluation tools (tools/):
+  - fetch_remote_zip.py: download parts of CoFly-WeedDB;
+  - weeddb_to_sd_card.js: turn it into GPS-tagged JPEGs;
+  - export_weed_features.js, train_weed_model.py, eval_weed_model.js;
+  - compare_problem_areas/: the comparison with CoFly's code.
+
+Not yet tested: a real Atom 2 flight, a real phone and a live what3words key.
+
+2.14 CREDITS AND LICENCES
+-------------------------
+* CoFly-GUI and CoFly modules: (c) IKH Innovation / CoFly team, MIT licence.
+* CoFly-WeedDB: Krestenitis et al. (2022), Data in Brief 45, 108575,
+  doi:10.1016/j.dib.2022.108575, CC-BY-4.0.
+* Eve mission format: reverse-engineered by the HOT Drone Tasking Manager team.
+* OpenDroneMap (AGPL): run as a separate Docker container.
+* Basemap imagery: Esri, Maxar, Earthstar Geographics.
+* what3words is a trademark of what3words Ltd. This project is not affiliated
+  with what3words or Potensic.
+================================================================================

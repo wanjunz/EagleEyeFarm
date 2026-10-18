@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>
+        Eagle Eye - Field
+    </title>
+    <!-- Favicon -->
+    <link href="img/brand/favicon.png" rel="icon" type="image/png">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+    <!-- Icons -->
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/reveal.css">
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/argon-dashboard.css" rel="stylesheet" />
+ 
+ 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    
+
+    <!--Add mapbox.js -->
+    <script src="https://api.tiles.mapbox.com/mapbox.js/v3.3.1/mapbox.js"></script>
+    <script src="js/basemap.js"></script>
+    <link
+      href="https://api.tiles.mapbox.com/mapbox.js/v3.3.1/mapbox.css"
+      rel="stylesheet"
+    />
+
+    <!--Add draw plugin -->
+    <!--Add draw plugin -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    
+    <script src='js/lib/leaflet.ajax.min.js'></script>
+    <!-- <script src='./js/lib/leaflet.snogylop.js'></script> -->
+    <link rel="stylesheet" href="css/timeline.css">
+    <link rel="stylesheet" href="css/datetimepicker.css">
+
+    <!-- Slick Library -->
+    
+    <link rel="stylesheet" href="css/slick.css">
+    <link rel="stylesheet" href="css/slick-theme.css">
+    <link rel="stylesheet" href="css/slick-lightbox.css">
+    
+
+
+    
+    
+    <style type="text/css">
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+}
+
+        #delete, #export {
+            position: absolute;
+            top:50px;
+            right:10px;
+            z-index:100;
+            background:white;
+            color:black;
+            padding:6px;
+            border-radius:4px;
+            font-family: 'Helvetica Neue';
+            cursor: pointer;
+            font-size:12px;
+            text-decoration:none;
+        }
+        #export {
+            top:90px;
+        }
+
+        path.leaflet-clickable {
+    fill: rgb(254,200,64);
+    stroke: rgb(254,200,64);
+}
+
+svg.leaflet-zoom-animated g:nth-child(n+2) path {
+    fill: #fb0303;
+    stroke: #fb0303;
+}
+
+path.CalculatedPathRender.leaflet-clickable:hover {
+    opacity: 1 !important;
+    cursor: auto !important;
+}
+
+svg.leaflet-zoom-animated g:nth-child(n+2):hover path{
+    opacity: .5;
+    cursor: url('./img/delete.png'), pointer;
+}
+
+
+
+.leaflet-top.leaflet-left {
+    margin-top: 20%;
+}
+
+
+/* .leaflet-top.leaflet-left {
+    display: none !important;
+} */
+
+.leaflet-top.leaflet-right {
+    display: none !important;
+}
+
+.mapbox-control-info.mapbox-small.mapbox-control-info-right.leaflet-control {
+    display: none !important;
+}
+
+li.nav-item.slider_inside_li .slider_title {
+    margin-left: 10%;
+    margin-top: 7%;
+}
+
+li.nav-item.slider_inside_li input[type="range"] {
+    width: 64%;
+    margin-left: 10%;
+}
+
+/* Test marker css */
+
+.leaflet-popup-content-wrapper {
+    background: transparent;
+}
+
+.leaflet-popup-tip {
+    background: transparent !important;
+    border: none;
+}
+
+a.leaflet-popup-close-button {
+    position: absolute;
+    left: 75px;
+    z-index: 9;
+    top: 40px;
+}
+
+.leaflet-popup-content img {
+    position: absolute;
+}
+
+
+.leaflet-popup-content img {
+    margin-left: -55px;
+}
+
+.f-modal-alert {
+    background-color: #333;
+    box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    margin: 20px;
+    padding: 50px;
+    position: absolute;
+    right: 27%;
+    top: 33%;
+    width: 25%;
+    z-index: 9999;
+    float: right;
+}
+
+h2.error_popup_title {
+    color: #fff;
+    width: 100% !important;
+    min-width: 200px;
+    position: absolute;
+    top: -85%;
+    left: -75%;
+    text-align: center;
+    font-weight: 400;
+    font-size: 18px;
+    color: #fec840;
+}
+
+.f-modal-alert{
+    display:none;
+}
+
+
+/* New button calculation of rgb vls */
+div#calculate_rgb_vls {
+    background: #fec840;
+    padding: 24px;
+    color: #000;
+    cursor: pointer;
+}
+
+div#export_project {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 11%;
+}
+
+
+    </style>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/w3w_panel.css">
+    <link rel="stylesheet" href="css/atom2_workflow.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body class="cf">
+    <div id="toast"></div>
+    <div id="stiching_progress">
+
+        <svg version="1.1" id="L3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
+    <circle fill="none" stroke="#fff" stroke-width="4" cx="50" cy="50" r="44" style="opacity:0.5;"></circle>
+      <circle fill="#fff" stroke="#fec840" stroke-width="3" cx="8" cy="54" r="6" transform="rotate(0.78084 50 48.0087)">
+        <animateTransform attributeName="transform" dur="2s" type="rotate" from="0 50 48" to="360 50 52" repeatCount="indefinite"></animateTransform>
+        
+      </circle>
+    </svg>
+    
+    <style>
+    #stiching_progress svg {
+        width: 100px;
+        height: 100px;
+        margin: 20px;
+        display: inline-block;
+      }
+
+      div#stiching_progress p {
+    font-size: 11px;
+    padding: 10px;
+    color: #fec840;
+    margin: 0;
+    text-align: center;
+}
+
+#stiching_progress svg {
+    margin-left: 30px;
+}
+
+div#stiching_progress {
+    display: none;
+    position: absolute;
+    bottom: 0%;
+    left: 23%;
+    z-index: 99;
+    background: #101010;
+}
+
+    </style>
+    
+        <p>Stiching Progress is running</p>
+        <p class="step_to_complete"><span id="stich_step">0</span> / 11</p>
+    
+    </div>
+
+    <div class="f-modal-alert">
+       <!--  <div class="f-modal-icon f-modal-error animate">
+            <span class="f-modal-x-mark">
+                <span class="f-modal-line f-modal-left animateXLeft"></span>
+                <span class="f-modal-line f-modal-right animateXRight"></span>
+            </span>
+            <div class="f-modal-placeholder"></div>
+            <div class="f-modal-fix"></div>
+        </div> -->
+        <div class="f-modal-icon f-modal-warning scaleWarning">
+            <h2 class="error_popup_title">Excecution Path Cannot Be Done</h2>
+            <span class="f-modal-body pulseWarningIns"></span>
+            <span class="f-modal-dot pulseWarningIns"></span>
+        </div>
+        <!-- <div class="f-modal-icon f-modal-success animate">
+            <span class="f-modal-line f-modal-tip animateSuccessTip"></span>
+            <span class="f-modal-line f-modal-long animateSuccessLong"></span>
+            <div class="f-modal-placeholder"></div>
+            <div class="f-modal-fix"></div>
+        </div> -->
+    </div>
+    <aside id="sidenav-main" class="cf-sidebar">
+        <div class="cf-brand">
+            <img src="img/brand/logo.png" alt="Eagle Eye logo">
+            <div><div class="cf-name">Eagle Eye</div><div class="cf-tag">Field scouting · Potensic Atom 2</div></div>
+            <div id="exit_button" class="cf-home" title="Back to the start screen">Home</div>
+        </div>
+
+        <div class="cf-sidebar-scroll" id="sidenav-collapse-main">
+            <input id="plan_name" class="cf-project-name" disabled aria-label="Project name">
+            <div class="cf-subtitle">Field <span id="acres_num">–</span> · scan time <span id="minutes_calc">not planned</span></div>
+            <div class="cf-stats cf-headline" title="Open the field health summary">
+                <div class="cf-stat" id="hdr_health"><div class="k">Crop health</div><div class="v">–</div><div class="r">after analysis</div></div>
+                <div class="cf-stat" id="hdr_weeds"><div class="k">Weeds</div><div class="v">–</div><div class="r">after analysis</div></div>
+            </div>
+
+            <div class="cf-section">Field workflow</div>
+            <div id="atom2_workflow" class="atom2_workflow">
+
+                <div class="wf_step" data-step="1">
+                    <div class="wf_head"><span class="wf_num">1</span><span class="wf_titles">Plan the scan<span class="wf_summary"></span></span></div>
+                    <div class="wf_body">
+                        <p class="wf_explain">Choose how the Atom 2 flies over the field. Lower flights show more detail (needed for weeds) but take longer.</p>
+                        <div class="cf-grid2">
+                            <div><label for="altitude_show">Height</label><div class="cf-unit" data-unit="m"><input id="altitude_show" type="number" class="input_main" min="5" max="120" step="1" value="20"></div></div>
+                            <div><label for="scanning_distance_now">Line spacing</label><div class="cf-unit" data-unit="m"><input id="scanning_distance_now" type="number" class="input_main" min="0" max="100" step="1" value="0" title="0 = automatic (65% side overlap)"></div></div>
+                            <div><label for="direction_show">Flight direction</label><div class="cf-unit" data-unit="°"><input id="direction_show" type="number" class="input_main" min="0" max="359" step="5" value="0"></div></div>
+                            <div><label for="drone_speed">Speed</label><div class="cf-unit" data-unit="m/s"><input id="drone_speed" type="number" class="input_main" min="1" max="15" step="1" value="5"></div></div>
+                        </div>
+                        <p class="cf-hint">Line spacing 0 = automatic. For weeds fly about 5–10 m; for crop health alone 20–40 m is faster.</p>
+                        <p class="cf-hint">Trees, buildings or power lines? Draw <b>no-fly zones</b> with the shape tools on the map; the route avoids them.</p>
+                        <div id="wf_plan" class="button_full">Plan scan path</div>
+                        <div class="wf_out" id="wf_plan_out"></div>
+                    </div>
+                </div>
+
+                <div class="wf_step" data-step="2">
+                    <div class="wf_head"><span class="wf_num">2</span><span class="wf_titles">Send it to the drone<span class="wf_summary"></span></span></div>
+                    <div class="wf_body">
+                        <p class="wf_explain">Plug in your Android phone (USB debugging on) with any one-point mission saved in Potensic Eve. It gets replaced by the scan.</p>
+                        <label for="wf_eve_mission">Eve mission to replace</label>
+                        <div class="wf_row">
+                            <select id="wf_eve_mission" class="input_main"><option value="">Press Find phone</option></select>
+                            <div id="wf_refresh" class="button_hollow" style="flex:0 0 auto;width:auto;margin:0">Find phone</div>
+                        </div>
+                        <label for="wf_part">Mission part</label>
+                        <select id="wf_part" class="input_main"></select>
+                        <div id="wf_send_scan" class="button_full">Send scan to Atom 2</div>
+                        <div id="wf_save_scan" class="button_hollow">Save mission files instead</div>
+                        <div class="wf_out" id="wf_send_out"></div>
+                        <details class="wf_help"><summary>Then, on the phone</summary>
+                            <ol><li>Open Potensic Eve → Waypoints → the mission you picked.</li>
+                                <li>Check the route, keep the drone in sight, tap <b>Start</b>.</li>
+                                <li>The Atom 2 photographs each point and returns home.</li></ol>
+                            iPhone: a whole-field scan has too many points to type in, so use an Android phone for scans.</details>
+                    </div>
+                </div>
+
+                <div class="wf_step" data-step="3">
+                    <div class="wf_head"><span class="wf_num">3</span><span class="wf_titles">Import the photos<span class="wf_summary"></span></span></div>
+                    <div class="wf_body">
+                        <p class="wf_explain">After the flight, put the drone's microSD card in the computer and choose its DCIM folder.</p>
+                        <div class="cf-grid2">
+                            <div><label for="wf_photo_height">Photo height</label><div class="cf-unit" data-unit="m"><input id="wf_photo_height" type="number" class="input_main" min="2" max="120"></div></div>
+                            <div><label for="wf_orientation">Top of photo faces</label>
+                                <select id="wf_orientation" class="input_main">
+                                    <option value="north">North (this app)</option>
+                                    <option value="travel">Flight direction</option>
+                                    <option value="travel-reverse">Opposite direction</option>
+                                </select></div>
+                        </div>
+                        <div id="wf_import_scan" class="button_full">Import photos</div>
+                        <div class="wf_out" id="wf_import_out"></div>
+                        <label class="wf_scan_pick" for="wf_scan">Scan shown on the map</label>
+                        <select id="wf_scan" class="input_main wf_scan_pick"></select>
+                    </div>
+                </div>
+
+                <div class="wf_step" data-step="4">
+                    <div class="wf_head"><span class="wf_num">4</span><span class="wf_titles">Analyse &amp; stitch maps<span class="wf_summary"></span></span></div>
+                    <div class="wf_body">
+                        <p class="wf_explain">Joins the photos into one map of the field, then checks it for crop health and weeds.</p>
+                        <label for="wf_method">How to join the photos</label>
+                        <select id="wf_method" class="input_main">
+                            <option value="auto">Automatic: 3D matching when possible (recommended)</option>
+                            <option value="sfm">3D matching only (structure from motion)</option>
+                            <option value="gps">GPS placement only (fast)</option>
+                        </select>
+                        <div id="wf_analyze" class="button_full">Analyse photos &amp; stitch maps</div>
+                        <div class="wf_out" id="wf_analyze_out"></div>
+                        <details class="wf_help"><summary>3D matching or GPS placement?</summary>
+                            <p><b>3D matching</b> (structure from motion, with OpenDroneMap) finds the same plants in overlapping photos, works out exactly where the camera was and rebuilds the field's surface, then makes one seamless, true-to-scale map. Best for photos straight off the drone. Needs Docker Desktop, about 10 GB free disk, photos that overlap (scans planned here do) and several minutes.</p>
+                            <p><b>GPS placement</b> puts each photo where the drone's GPS says it was. Takes about 1 second per photo, but seams can be off by a few metres.</p>
+                        </details>
+                    </div>
+                </div>
+
+                <div class="wf_step" data-step="5">
+                    <div class="wf_head"><span class="wf_num">5</span><span class="wf_titles">View the field maps<span class="wf_summary"></span></span></div>
+                    <div class="wf_body">
+                        <p class="wf_explain">Switch maps. Crop health goes from red (stressed or bare) to green (healthy); numbered pins mark problem patches. Weeds show in purple.</p>
+                        <div class="wf_index_pick" id="wf_layer_pick"></div>
+                        <div class="wf_legend" id="wf_legend" style="display:none;"><span>stressed / bare</span><span>healthy</span></div>
+                        <div class="wf_out" id="wf_health_out"></div>
+                    </div>
+                </div>
+
+                <div class="wf_step" data-step="6">
+                    <div class="wf_head"><span class="wf_num">6</span><span class="wf_titles">Field health summary<span class="wf_summary"></span></span></div>
+                    <div class="wf_body">
+                        <p class="wf_explain">Two numbers for the whole field, from every photo.</p>
+                        <div id="wf_scores" class="wf_scores"></div>
+                        <div class="wf_row">
+                            <div id="wf_show_attention" class="button_hollow">Show where to look</div>
+                            <div id="wf_show_weeds" class="button_hollow">Show weed map</div>
+                        </div>
+                        <div class="wf_out" id="wf_summary_out"></div>
+                        <details class="wf_help"><summary>How these numbers work</summary>
+                            <p><b>Crop health</b> is the share of the field that looks healthy. Each photo is split into areas of about 4 m × 4 m. An area needs a look when its crop is <b>thin</b> (green cover under 70% of the field's typical cover), <b>pale</b> (clearly less green than the field's typical plants) or has <b>bare or stressed patches</b>. 85–100 is Good, 65–84 Fair, below 65 Poor.</p>
+                            <p><b>Weeds</b> is the share of the photographed field covered by likely weed patches, found by the weed model. Under 2% is Low, 2–10% Moderate, over 10% High.</p>
+                            <p>Crop health compares each part of the field with the rest of the same field, so it can't tell if the whole field is evenly stressed. Compare scans over time for that.</p>
+                        </details>
+                    </div>
+                </div>
+
+                <div class="wf_step" data-step="7">
+                    <div class="wf_head"><span class="wf_num">7</span><span class="wf_titles">Close-up flight<span class="wf_summary"></span></span></div>
+                    <div class="wf_body">
+                        <p class="wf_explain">A low flight that photographs each problem patch straight down, for a sharper weed check. Uses the phone mission chosen in step 2.</p>
+                        <label for="wf_hot_height">Close-up height</label>
+                        <div class="cf-unit" data-unit="m"><input id="wf_hot_height" type="number" class="input_main" value="6" min="3" max="30"></div>
+                        <div id="wf_plan_hot" class="button_full">Plan close-up flight</div>
+                        <div id="wf_send_hot" class="button_hollow">Send close-up flight to Atom 2</div>
+                        <div class="wf_out" id="wf_hot_out"></div>
+                    </div>
+                </div>
+
+                <div class="wf_step" data-step="8">
+                    <div class="wf_head"><span class="wf_num">8</span><span class="wf_titles">Close-up weed check<span class="wf_summary"></span></span></div>
+                    <div class="wf_body">
+                        <p class="wf_explain">Import the close-up photos. Click a result to compare it with the original photo.</p>
+                        <div id="wf_import_close" class="button_full">Import close-up photos</div>
+                        <div class="wf_out" id="wf_weed_out"></div>
+                        <div class="wf_weed_list" id="wf_weed_list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cf-section">One spot</div>
+            <details class="cf-collapse" id="w3w_section">
+                <summary>Fly to one spot <span class="cf-sub">· one close-up photo</span></summary>
+                <div class="cf-collapse-body">
+                    <div id="w3w_panel" class="w3w_panel">
+                        <label for="w3w_words">what3words address</label>
+                        <input id="w3w_words" class="input_main" placeholder="///filled.count.soap" autocomplete="off" spellcheck="false">
+                        <div class="w3w_row">
+                            <div><label for="w3w_height">Height</label><div class="cf-unit" data-unit="m"><input id="w3w_height" type="number" class="input_main" value="30" min="2" max="120"></div></div>
+                            <div><label for="w3w_pitch">Camera angle</label><div class="cf-unit" data-unit="°"><input id="w3w_pitch" type="number" class="input_main" value="-90" min="-90" max="20"></div></div>
+                        </div>
+                        <div id="w3w_find" class="button_full">Find square</div>
+                        <div id="w3w_result" class="w3w_result" style="display:none;"></div>
+                        <div id="w3w_atom2_actions" style="display:none;">
+                            <label for="w3w_eve_mission">Eve mission to replace (Android)</label>
+                            <select id="w3w_eve_mission" class="input_main"><option value="">Connect phone, then refresh</option></select>
+                            <div id="w3w_refresh_missions" class="button_hollow">Find phone missions</div>
+                            <div id="w3w_push" class="button_full">Send to Atom 2</div>
+                            <div id="w3w_save" class="button_hollow">Save mission files</div>
+                        </div>
+                        <div id="w3w_status" class="w3w_status"></div>
+                        <div id="w3w_analyze_box" class="w3w_analyze_box">
+                            <div class="w3w_sub">After the flight</div>
+                            <div id="w3w_analyze" class="button_hollow">Analyse the photo</div>
+                            <div id="w3w_analysis" class="w3w_result" style="display:none;"></div>
+                        </div>
+                        <details class="w3w_settings">
+                            <summary>what3words settings</summary>
+                            <label>API key (paid plan)<input id="w3w_api_key" type="password" class="input_main" placeholder="paste your key"></label>
+                            <label><input id="w3w_mock" type="checkbox"> Test mode (sample addresses only)</label>
+                        </details>
+                    </div>
+                </div>
+            </details>
+
+            <!-- legacy CoFly settings kept for saved projects (not used by the Atom 2 workflow) -->
+            <input type="hidden" id="gimbal_pitch" value="-90">
+            <input type="hidden" id="hotpoint_diameter_now" value="5">
+        </div>
+
+        <div class="cf-sidebar-footer">
+            <div id="lock_project" class="cf-btn cf-btn-secondary" title="Save the flight settings in this project">Save settings</div>
+            <div id="export_project" class="cf-btn cf-btn-secondary" title="Save this project as a .zip to move it to another computer">Export project</div>
+        </div>
+    </aside>
+
+
+        
+
+    
+    <div class="main-content">
+
+        <!-- Alert Box Scan Completed -->
+        <div class="col-md-12" style="display:none;" id="scan_completed">
+        
+            <div class="scan_done weather col-md-6">
+                <div class="container_weather">
+                <div class="weather_icon"><img src="./img/sun_icon.png">
+            <span id="weather_desc">Weather</span></div>
+            
+            <div class="weather_stats">
+                
+                <ul>
+                    <li> <img src="./img/temperature.png"> <p>5 - 19 °C</p></li>
+                    <li> <img src="./img/humidity.png"> <p>57 %</p></li>
+                    <li> <img src="./img/wind_icon.png"><p> 4.1 km/h</p></li>
+                    <li> <img src="./img/weather.png"><p> 19:40:14 </p></li>
+                </ul>
+            
+            
+            </div>
+        </div>
+            </div>
+    <div class="scan_done col-md-6">
+
+        <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+
+          <h2>Scan Complete</h2>
+          <ul class="action_list_done">
+
+            <li is_enabled="0"><img src="./img/watering.png"></li>
+            <li is_enabled="0"><img src="./img/watering.png"></li>
+            <li is_enabled="0"><img src="./img/watering.png"></li>
+
+          </ul>
+
+          <textarea id="scan_complete_comments" rows="7" placeholder="Add any comment" cols="50"></textarea>
+            <div class="send_button_scan_complete_container">
+                <div id="save_scan_done_details"><span>SAVE</span></div>
+            </div>
+    </div>
+        
+        </div>
+
+
+            <div class="reveal">
+
+                    <!-- Any section element inside of this container is displayed as a slide -->
+                    <div class="slides">
+                        
+                        <section class="present" >
+                                <div id='map'></div>
+                        </section>
+        
+                        <!-- Example of nested vertical slides -->
+                        <section class="stack future" style="top: 0px; display: block;" data-previous-indexv="0" hidden="" aria-hidden="true">
+                            <section style="top: 138px; display: block;" class="" aria-hidden="true">
+                                <div id="timeline_div">
+                                    
+                                    <!-- AJAX LOAD TIMELINE .html 
+                                    
+                                    // NewTere
+jQuery("div#timeline_div").load("scan_timeline.html");
+                                    
+                                    -->
+
+                                </div> 
+                                
+                                
+                                <div class="" style="position:absolute;width: 40%;bottom: 5%;left: 30%;" ng-app="dateTimeApp" ng-controller="dateTimeCtrl as ctrl" ng-cloak>
+		
+                                    <div date-picker
+                                         datepicker-title="Select Date"
+                                         picktime="true"
+                                         pickdate="true"
+                                         pickpast="false"
+                                         mondayfirst="false"
+                                         custom-message="You have selected"
+                                         selecteddate="ctrl.selected_date"
+                                         updatefn="ctrl.updateDate(newdate)">
+                                    
+                                        <div class="datepicker"
+                                             ng-class="{
+                                                'am': timeframe == 'am',
+                                                'pm': timeframe == 'pm',
+                                                'compact': compact
+                                            }">
+                                            <div class="datepicker-header">
+                                                <div class="datepicker-title" ng-if="datepicker_title">{{ datepickerTitle }}</div>
+                                                <div class="datepicker-subheader">{{ customMessage }} {{ selectedDay }} {{ monthNames[localdate.getMonth()] }} {{ localdate.getDate() }}, {{ localdate.getFullYear() }}</div>
+                                            </div>
+                                            <div class="datepicker-calendar">
+                                                <div class="calendar-header">
+                                                    <div class="goback" ng-click="moveBack()" ng-if="pickdate">
+                                                        <svg width="30" height="30">
+                                                            <path fill="none" stroke="#333" stroke-width="3" d="M19,6 l-9,9 l9,9"/>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="current-month-container">{{ currentViewDate.getFullYear() }} {{ currentMonthName() }}</div>
+                                                    <div class="goforward" ng-click="moveForward()" ng-if="pickdate">
+                                                        <svg width="30" height="30">
+                                                            <path fill="none" stroke="#333" stroke-width="3" d="M11,6 l9,9 l-9,9" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <div class="calendar-day-header">
+                                                    <span ng-repeat="day in days" class="day-label">{{ day.short }}</span>
+                                                </div>
+                                                <div class="calendar-grid" ng-class="{false: 'no-hover'}[pickdate]">
+                                                    <div
+                                                        ng-class="{'no-hover': !day.showday}"
+                                                        ng-repeat="day in month"
+                                                        class="datecontainer"
+                                                        ng-style="{'margin-left': calcOffset(day, $index)}"
+                                                        track by $index>
+                                                        <div class="datenumber" ng-class="{'day-selected': day.selected }" ng-click="selectDate(day)">
+                                                            {{ day.daydate }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="timepicker" ng-if="picktime == 'true'">
+                                                <div ng-class="{'am': timeframe == 'am', 'pm': timeframe == 'pm' }">
+                                                    <div class="timepicker-container-outer" selectedtime="time" timetravel>
+                                                        <div class="timepicker-container-inner">
+                                                            <div class="timeline-container" ng-mousedown="timeSelectStart($event)" sm-touchstart="timeSelectStart($event)">
+                                                                <div class="current-time">
+                                                                    <div class="actual-time">{{ time }}</div>
+                                                                </div>
+                                                                <div class="timeline">
+                                                                </div>
+                                                                <div class="hours-container">
+                                                                    <div class="hour-mark" ng-repeat="hour in getHours() track by $index"></div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="display-time">
+                                                                <div class="decrement-time" ng-click="adjustTime('decrease')">
+                                                                    <svg width="24" height="24">
+                                                                        <path stroke="white" stroke-width="2" d="M8,12 h8"/>
+                                                                    </svg>
+                                                                </div>
+                                                                <div class="time" ng-class="{'time-active': edittime.active}">
+                                                                    <input type="text" class="time-input" ng-model="edittime.input" ng-keydown="changeInputTime($event)" ng-focus="edittime.active = true; edittime.digits = [];" ng-blur="edittime.active = false"/>
+                                                                    <div class="formatted-time">{{ edittime.formatted }}</div>
+                                                                </div>
+                                                                <div class="increment-time" ng-click="adjustTime('increase')">
+                                                                    <svg width="24" height="24">
+                                                                        <path stroke="white" stroke-width="2" d="M12,7 v10 M7,12 h10"/>
+                                                                    </svg>
+                                                                </div>
+                                                            </div>
+                                                            <div class="am-pm-container">
+                                                                <div class="am-pm-button" ng-click="changetime('am');">am</div>
+                                                                <div class="am-pm-button" ng-click="changetime('pm');">pm</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div style="display:none;" class="section_two_actions_button"><span class="scan_info_title">Select Field Action:</span><ul class="add_new_action_calendar"><li is_enabled="0"><img src="./img/spray.png"></li><li is_enabled="0"><img src="./img/tractor.png"></li><li is_enabled="0"><img src="./img/watering.png"></li></ul></div>
+                                            <div style="display:none;" class="section_two_actions_comments"><span class="scan_info_title">Write Extra Comments:</span><textarea placeholder="Comments" id="add_extra_field_comments" rows="4" cols="50"></textarea></div>
+
+                                            
+                                            <div class="buttons-container">
+                                                <div id="cancel_field_action" class="cancel-button">CANCEL</div>
+                                                <div id="add_field_action" can_save="0" class="save-button">NEXT</div>
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                              
+
+
+
+
+
+                                <div id="add_to_calendar_new_action" class="button_full">ADD NEW ACTION TO CALENDAR FIELD</div>
+
+
+                                
+                               
+                            </section>
+                            <section class="future" style="top: 0px;display: block;min-height: 100vh !important;min-width: 100vw !important;" hidden="" aria-hidden="true">
+                                
+                               <!-- Test Intergration -->
+                               <link rel="stylesheet" href="css/gallery_style.css">
+                               <div  class="viewport">
+                                <div class="canvas">
+                                    
+                                    <div class="selected"></div>
+                                </div>
+                            </div>
+                            <div class="map-container">
+                                <div class="map">
+                                   
+                                </div>
+                            </div>
+                            <button class="back" id="back">back</button>
+                            <div class="focus-container">
+                                <button style=" margin-top: 1.9%; "class="focus" aria-labelledby="ally-zoom">
+                                    <spa class="visuallyhidden" id="ally-zoom">expand image</spa>
+                                </button>
+                            </div>
+                            <div class="zoom-container">
+                                <div class="zoom">
+                                    <div class="zoom__input">
+                                        <input type="range" id="zoom" name="zoom" min="0.375" max=".75" value=".375" step="0.041666666666666664" orient="vertical" />
+                                        <div class="lines">
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                        </div>
+                                        <label for="zoom" class="">zoom</label>
+                                    </div>
+                                    <div class="datalist">
+                                        <div>[.750]</div>
+                                        <div>[.562]</div>
+                                        <div>[.375]</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mas">
+                                <div class="v"></div>
+                                <div class="h"></div>
+                                <div class="r"></div>
+                            </div>
+
+                            <script  src="js/gallery.js"></script>
+                               <!-- End of test integration gallery -->
+
+
+
+
+
+                            </section>
+                         
+                        </section>
+        
+        
+                    </div>
+        
+                </div>
+
+
+            <div id="photo_picker_receiver_start"><div id="image_container">  
+
+                <div style="display:none;"class="button_full_rgb_vls" index="ExG_stiched">ExG</div>
+                <div style="display:none;" class="button_full_rgb_vls" index="ExG-ExR_stiched">ExG-ExR</div>
+                <div class="button_full_rgb_vls" index="GLI.png">GLI 
+                
+
+                    <section class="model-7">
+                        <div class="checkbox">
+                          <input indeces_selection="gli_markers" type="checkbox"/>
+                          <label></label>
+                        </div>
+                      </section>
+
+                </div> 
+               
+                <div class="button_full_rgb_vls" index="NGBDI.png">NGBDI
+
+
+                    <section class="model-7">
+                        <div class="checkbox">
+                          <input indeces_selection="nbgdi_markers" type="checkbox">
+                          <label></label>
+                        </div>
+                      </section>
+
+                </div> 
+               
+                <div class="button_full_rgb_vls" index="NGRDI.png">NGRDI<section class="model-7">
+                    <div class="checkbox">
+                      <input indeces_selection="ngrdi_markers" type="checkbox">
+                      <label></label>
+                    </div>
+                  </section></div> 
+                <div style="display:none;" class="button_full_rgb_vls" index="SAVI-GREEN_stiched">SAVI-GREEN</div>
+                <div class="button_full_rgb_vls" index="VARI.png">VARI<section class="model-7">
+                    <div class="checkbox">
+                      <input indeces_selection="vari_markers" type="checkbox">
+                      <label></label>
+                    </div>
+                  </section></div> 
+
+            </div>
+            
+            <div id="open_image_settings_map">
+                
+                <!-- <i class="fas fa-wrench"></i>-->
+                
+                
+            
+            </div>
+            <div id="close_map_photo_picker"><i class="fas fa-times"></i></div></div>
+            <div id="photo_wizard_start">
+                
+                <div class="dirs">
+
+                    <div class="rotate"><i class="fas fa-undo"></i><span>Rotate Left</span></div>
+                
+                    <div class="left"><i class="fas fa-arrow-left"></i><span>Move Left</span></div>
+                    <div class="up"><i style=" transform: rotate(-90deg); " class="fas fa-arrow-right"></i><span>Move Up</span></div>
+                    <div class="down"><i style=" transform: rotate(90deg); " class="fas fa-arrow-right"></i><span>Move Down</span></div>
+                    <div class="right"><i class="fas fa-arrow-right"></i><span>Move Right</span></div>
+                
+                    <div class="rotate_neg"><i style="transform:scaleX(-1)" class="fas fa-undo"></i><span>Rotate Right</span></div>
+                </div>
+
+                <div id="save_settings_img"><i class="fas fa-save"></i><span>Save</span></div>
+            
+            </div>
+        <div id="lightbox"><div class="close_image_shower">X</div></div>
+
+            <!-- PROCESS LOADER -->
+
+            <div id="Loader_Proccess_PopUp" class="card">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; padding: 60px 0;">
+                  <div class="card__circle">
+                    <div class="folder">
+                      <div class="folder__bg"><img width="100%" src="./img/loader2.gif"></div>
+                      <div style="display:none;" class="folder__page3"></div>
+                      <div style="display:none;" class="folder__page2"></div>
+                      <div style="display:none;" class="folder__page1"></div>
+                      <div style="display:none;" class="folder__front"></div>
+                    </div>
+                  </div>
+                  <div class="card-information">
+                    <div class="card-information__title">Processing...</div>
+                    <div class="card-information__text">Please wait while we set things up for you!</div>
+                  </div>
+                </div>
+              </div>
+
+            <!-- END PROCESS LOADER -->
+
+
+
+
+        <div id="pop_up_container">
+    <div class="pop_up_content">
+        <p>Please fill out the form, also do not forget create your polygon in order to specify area field </p><div class="button_all_ok">OK</div></div></div>
+        <!--<div class="loader_calculation"><img src="img/new_simple_logo.png"></div>-->
+        <!-- Navbar -->
+        <div class="Settings_Menu_Nav" style="display:none;"><img id="button_trig_menu" src="img/button_side_menu.png">
+<ul style="display: none;" class="map_tools">
+
+<li><i class="fas fa-mouse-pointer"></i><span>Select elements</span></li><li><i class="fas fa-draw-polygon"></i><span>Draw polygon</span></li><li><i class="fas fa-asterisk"></i><span>Add annotation</span></li><li><i class="fas fa-edit"></i><span>Edit elements</span></li><li><i class="fas fa-trash-alt"></i><span>Delete elements</span></li><li><i class="fas fa-download"></i><span>Export map</span></li>
+    
+<div id="close_tool_menu"><i class="fas fa-times"></i></div>
+
+</ul>
+
+</div>
+
+<div class="slide_messages">
+<ul style="display: none;" class="">
+
+<p class="slide_message">Gallery Sync Started</p>
+    
+</ul>
+
+</div>
+
+
+<!-- Slick Slider & LightBox for detection images -->
+<div class="hide_it" id="the_closer_of_slick">X</div>
+<div  id="detection_carousel" style="position: absolute;bottom: 0;width: 100%;background: rgba(0,0,0,.8);" class="portfolio-slides hide_it">
+    
+    
+  </div>
+
+<!-- End Navbar -->
+        <!-- Header -->
+
+    
+
+
+
+
+    </div>
+    <script src="js/main_script.js"></script>
+    <!--<script src="js/main_map.js"></script>-->
+    <script src="js/load_project.js"></script>
+    <script src="js/w3w_panel.js"></script>
+    <script src="js/atom2_workflow.js"></script>
+
+    <script src="js/lib/angular.min.js"></script>
+    <script src="js/lib/datetime_picker_js.js"></script>
+    
+    
+
+    <!-- Slick Slider Portfolios -->
+    
+    <script src="js/lib/slick.min.js"></script>
+    <script src="js/lib/slick-lightbox.js"></script>
+
+
+    <script src="js/reveal.js"></script>
+    <script src="js/timeline_manager.js"></script>
+        
+    
+
+
+		<script>
+
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: false,
+				center: true,
+				hash: true,
+
+				transition: 'convex', // none/fade/slide/convex/concave/zoom
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true },
+					{ src: 'plugin/search/search.js', async: true },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+            });
+            
+
+
+
+        </script>
+
+
+
+    <style>
+    .slides {
+    zoom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+
+
+.slides {
+    zoom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    left: 0px !important;
+    top: 0px !important;
+}
+
+section:nth-child(1) {
+    top: 0px !important;
+}
+
+
+    </style>
+        
+       
+
+  </body>
+
+</html>

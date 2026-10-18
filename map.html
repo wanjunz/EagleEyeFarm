@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Eagle Eye - New field</title>
+    <!-- Favicon -->
+    <link href="img/brand/favicon.png" rel="icon" type="image/png" />
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700"
+      rel="stylesheet"
+    />
+    <!-- Icons -->
+    <!-- CSS Files -->
+    <link href="css/argon-dashboard.css?v=1.1.0" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <script src="./js/prefixfree.min.js"></script>
+
+    <!--Add mapbox.js -->
+    <script src="https://api.tiles.mapbox.com/mapbox.js/v3.3.1/mapbox.js"></script>
+    <script src="js/basemap.js"></script>
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/w3w_panel.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <link
+      href="https://api.tiles.mapbox.com/mapbox.js/v3.3.1/mapbox.css"
+      rel="stylesheet"
+    />
+
+    <!--Add draw plugin -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <style type="text/css">
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100vh;
+      }
+
+      #delete,
+      #export {
+        position: absolute;
+        top: 50px;
+        right: 10px;
+        z-index: 100;
+        background: white;
+        color: black;
+        padding: 6px;
+        border-radius: 4px;
+        font-family: "Helvetica Neue";
+        cursor: pointer;
+        font-size: 12px;
+        text-decoration: none;
+      }
+      #export {
+        top: 90px;
+      }
+
+      path.leaflet-clickable {
+        fill: rgb(254, 200, 64);
+        stroke: rgb(254, 200, 64);
+      }
+
+      .leaflet-top.leaflet-left {
+        margin-top: 20%;
+      }
+
+      .fifty_percent h7 {
+        color: #fec840;
+        float: left;
+        text-align: center;
+        width: 100%;
+      }
+
+      .double_sett_holder span {
+        width: 100%;
+        text-align: center;
+        margin-left: 0px;
+      }
+
+      a.leaflet-control-layers-toggle {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body class="cf">
+    <aside id="sidenav-main" class="cf-sidebar">
+      <div class="cf-brand">
+        <img src="img/brand/logo.png" alt="Eagle Eye logo">
+        <div><div class="cf-name">Eagle Eye</div><div class="cf-tag">Field scouting · Potensic Atom 2</div></div>
+      </div>
+
+      <div class="cf-sidebar-scroll" id="sidenav-collapse-main">
+        <h1 class="cf-title">New field</h1>
+        <p class="cf-lead">Mark your field with the what3words addresses of its four corners. You'll plan the drone scan on the next screen.</p>
+
+        <div class="cf-steps">
+          <div class="cf-step">
+            <h3>Name the field</h3>
+            <input id="plan_name" class="input_main" placeholder="e.g. North cotton field" autocomplete="off">
+            <p class="cf-hint">Letters, numbers, spaces, - and _ only.</p>
+          </div>
+
+          <div class="cf-step" id="field_corners">
+            <h3>Enter the four corners</h3>
+            <div class="w3w_panel">
+              <p class="cf-hint" style="margin:0 0 8px">One what3words address per corner, in any order.</p>
+              <input id="fc_1" class="input_main fc_input" placeholder="///corner.one.address" autocomplete="off" spellcheck="false" aria-label="Corner 1">
+              <input id="fc_2" class="input_main fc_input" placeholder="///corner.two.address" autocomplete="off" spellcheck="false" aria-label="Corner 2">
+              <input id="fc_3" class="input_main fc_input" placeholder="///corner.three.address" autocomplete="off" spellcheck="false" aria-label="Corner 3">
+              <input id="fc_4" class="input_main fc_input" placeholder="///corner.four.address" autocomplete="off" spellcheck="false" aria-label="Corner 4">
+              <div id="fc_find" class="button_full">Find field</div>
+              <div id="fc_status" class="w3w_status"></div>
+              <details class="w3w_settings">
+                <summary>what3words settings</summary>
+                <label>API key (paid plan)<input id="w3w_api_key" type="password" class="input_main" placeholder="paste your key"></label>
+                <label><input id="w3w_mock" type="checkbox"> Test mode (sample addresses only)</label>
+              </details>
+            </div>
+          </div>
+
+          <div class="cf-step">
+            <h3>Check and create</h3>
+            <div class="cf-stats">
+              <div class="cf-stat"><div class="k">Field area</div><div class="v"><span id="acres_num">–</span></div></div>
+              <div class="cf-stat"><div class="k">Corners found</div><div class="v"><span id="fc_count">0 of 4</span></div></div>
+            </div>
+            <p class="cf-hint">The yellow outline on the map should match your field.</p>
+          </div>
+        </div>
+
+        <!-- read by js/main_map.js when saving (defaults for the new project) -->
+        <span id="minutes_calc" hidden>--:--</span>
+        <input type="hidden" class="input-range--custom altitude" value="20">
+        <input type="hidden" class="input-range--custom direction" value="0">
+      </div>
+
+      <div class="cf-sidebar-footer">
+        <div id="exit_button" class="cf-btn cf-btn-secondary">Cancel</div>
+        <div id="save_button" class="cf-btn cf-btn-primary">Create project</div>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <div id="pop_up_container">
+        <div class="pop_up_content">
+          <p>
+            Please enter a plan name and the four what3words corners of the field, then press FIND FIELD.
+          </p>
+          <div class="button_all_ok">OK</div>
+        </div>
+      </div>
+
+      <!-- Navbar -->
+      <div style="display: none;" class="Settings_Menu_Nav">
+        <img id="button_trig_menu" src="img/button_side_menu.png" />
+        <ul style="display: none" class="map_tools">
+          <li>
+            <i class="fas fa-mouse-pointer"></i><span>Select elements</span>
+          </li>
+          <li><i class="fas fa-draw-polygon"></i><span>Draw polygon</span></li>
+          <li><i class="fas fa-asterisk"></i><span>Add annotation</span></li>
+          <li><i class="fas fa-edit"></i><span>Edit elements</span></li>
+          <li><i class="fas fa-trash-alt"></i><span>Delete elements</span></li>
+          <li><i class="fas fa-download"></i><span>Export map</span></li>
+
+          <div id="close_tool_menu"><i class="fas fa-times"></i></div>
+        </ul>
+      </div>
+      <!-- End Navbar -->
+      <!-- Header -->
+
+      <div id="map"></div>
+      <div style="display: none" id="delete">Delete Features</div>
+      <a style="display: none" href="#" id="export">Export Features</a>
+    </div>
+    <script src="js/main_script.js"></script>
+    <script src="js/main_map.js"></script>
+    <script src="js/field_corners.js"></script>
+  </body>
+</html>

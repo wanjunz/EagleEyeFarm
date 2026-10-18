@@ -1,0 +1,23 @@
+{
+ "split1": {
+  "train_images": 134,
+  "threshold": 0.225,
+  "cv_weed_iou_on_train": 0.316
+ },
+ "split2": {
+  "train_images": 134,
+  "threshold": 0.25,
+  "cv_weed_iou_on_train": 0.308
+ },
+ "split3": {
+  "train_images": 134,
+  "threshold": 0.225,
+  "cv_weed_iou_on_train": 0.306
+ },
+ "final": {
+  "images": 201,
+  "threshold": 0.25,
+  "cv_weed_iou": 0.322
+ },
+ "export_max_abs_diff": 0.0
+}

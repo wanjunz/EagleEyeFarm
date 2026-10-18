@@ -1,0 +1,54 @@
+/* Page-specific styles on top of css/theme.css */
+
+/* project page: editable-looking title that is really a label */
+.cf-project-name { all: unset; display: block; width: 100%; font: 700 21px/1.25 var(--font); color: var(--ink); margin: 14px 0 10px; -webkit-text-fill-color: var(--ink); }
+
+/* legacy CoFly overlays restyled */
+body.cf .reveal .controls { color: var(--forest) !important; }
+body.cf .reveal .controls button { color: var(--forest) !important; }
+body.cf #pop_up_container .pop_up_content { background: var(--surface); color: var(--ink); border-radius: var(--radius); box-shadow: var(--shadow); font-family: var(--font); }
+body.cf #pop_up_container .button_all_ok { background: var(--forest); color: #fff; border-radius: var(--radius-sm); }
+
+/* load project page: project list */
+.cf-project-list { display: flex; flex-direction: column; gap: 8px; }
+body.cf .project_button { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; box-shadow: var(--shadow); margin: 0; width: auto; }
+body.cf .project_button:hover { border-color: var(--forest); background: var(--forest-50); }
+body.cf .project_button.prj_active { border-color: var(--forest); box-shadow: var(--focus); }
+body.cf .project_button label { margin: 0; cursor: pointer; font-weight: 650; color: var(--ink); font-size: 14.5px; display: flex; align-items: center; gap: 10px; }
+body.cf .project_button label i { color: var(--forest); width: 16px; text-align: center; }
+body.cf .no_projects { color: var(--muted) !important; padding: 12px 0 !important; }
+
+/* load project page: the floating "open this project" bar */
+body.cf div#load_this_project { position: absolute; left: calc(var(--sidebar-w) + 24px); right: auto; bottom: 24px; width: auto; height: auto; z-index: 30;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 6px 24px rgba(0,0,0,.18); padding: 12px; gap: 8px; }
+body.cf div#load_this_project[style*="block"] { display: flex !important; }
+body.cf div#load_this_project div { float: none; width: auto; margin: 0; border-radius: var(--radius-sm); padding: 9px 16px; font: 600 14px var(--font); border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink); }
+body.cf div#load_this_project .load_it { background: var(--forest); border-color: var(--forest); color: #fff; order: 3; }
+body.cf div#load_this_project .load_it:hover { background: var(--forest-700); }
+body.cf div#load_this_project .delete_it { color: var(--danger); border-color: #E8B4B0; order: 2; }
+body.cf div#load_this_project .delete_it:hover { background: var(--danger-50); }
+body.cf div#load_this_project .forget_it { order: 1; }
+body.cf div#load_this_project .forget_it:hover { background: var(--canvas); }
+.cf-selected-title { font-weight: 700; align-self: center; margin-right: 8px; }
+
+/* create project page */
+.cf-steps { counter-reset: s; }
+.cf-step { position: relative; padding-left: 34px; margin-bottom: 16px; }
+.cf-step::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--forest); color: #fff; font: 700 12.5px/24px var(--font); text-align: center; }
+.cf-step h3 { font-size: 14.5px; font-weight: 700; margin: 2px 0 6px; color: var(--ink); }
+body.cf .cf-sidebar-footer #export_project, body.cf .cf-sidebar-footer #lock_project { margin: 0; width: auto; }
+body.cf .project_button label i { position: static !important; float: none !important; margin: 0 !important; font-size: 15px; }
+body.cf .project_button > label { width: 100%; }
+
+/* project header: subtitle + headline scores */
+.cf-subtitle { font-size: 13px; color: var(--muted); margin: -6px 0 10px; }
+.cf-headline { cursor: pointer; }
+.cf-headline .cf-stat { border-left: 4px solid var(--border-strong); }
+.cf-headline .cf-stat .v { font-size: 24px; font-weight: 800; line-height: 1.15; }
+.cf-headline .cf-stat .v small { font-size: 13px; font-weight: 600; color: var(--muted); margin-left: 1px; }
+.cf-headline .cf-stat .r { font-size: 12px; font-weight: 700; color: var(--muted); }
+.cf-headline .cf-stat.good { border-left-color: #2E8B4E; } .cf-headline .cf-stat.good .r { color: #1E6B38; }
+.cf-headline .cf-stat.fair { border-left-color: #D08A12; } .cf-headline .cf-stat.fair .r { color: #8A5300; }
+.cf-headline .cf-stat.poor { border-left-color: #C0392B; } .cf-headline .cf-stat.poor .r { color: #9E2A1E; }
+.cf-headline:hover .cf-stat { background: var(--forest-50); }

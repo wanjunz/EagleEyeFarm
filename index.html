@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>
+        Eagle Eye
+    </title>
+    <!-- Favicon -->
+    <link href="img/brand/favicon.png" rel="icon" type="image/png">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+    <!-- Icons -->
+    <!-- CSS Files -->
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+	
+	        <link href="https://fonts.googleapis.com/css?family=Pathway+Gothic+One|Source+Sans+Pro:400" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+<link rel="stylesheet" href="css/3divs_css.css">
+
+	
+	
+  
+</head>
+
+<body class="action_picker">
+
+
+
+<input type="file" accept=".zip" style="display:none;">
+
+<div class="cf-launch-brand" aria-label="Eagle Eye">
+  <img src="img/brand/logo-white.png" alt="">
+  <div><div class="cf-launch-name">Eagle Eye</div><div class="cf-launch-tag">Field scouting with the Potensic Atom 2</div></div>
+</div>
+	
+	<section id="timeline">
+  
+  <div class="tl-item ld_projects">
+    
+    <div class="tl-bg" style="background-image: url(img/img1.jpg);"></div>
+    
+    <div class="tl-year">
+      <p class="f2 heading--sanSerif">LOAD PROJECT</p>
+    </div>
+
+    <div class="tl-content">
+      <h1>Check on a field</h1>
+      <p>Open a field you've already set up to see how the crop is doing, plan the next drone flight or add new photos.</p>
+    </div>
+  </div>
+
+  <div class="tl-item ne_project">
+    
+    <div class="tl-bg" style="background-image: url(img/img2.jpg);"></div>
+    
+    <div class="tl-year">
+      <p class="f2 heading--sanSerif">CREATE PROJECT</p>
+    </div>
+
+    <div class="tl-content">
+      <h1>Set up a new field</h1>
+      <p>Type the what3words addresses of your field's four corners. Eagle Eye outlines the field and plans the drone's route over it.</p>
+    </div>
+
+  </div>
+  
+  <div class="tl-item im_project">
+    
+    <div class="tl-bg" style="background-image: url(img/img3.jpg);"></div>
+    
+    <div class="tl-year">
+      <p class="f2 heading--sanSerif">IMPORT PROJECT</p>
+    </div>
+
+    <div class="tl-content">
+      <h1>Bring in a field</h1>
+      <p>Open a project .zip exported from another computer.</p>
+    </div>
+
+  </div>
+
+
+  <div class="tl-item fly_w3w">
+
+    <div class="tl-bg" style="background-image: url(img/img1.jpg); background-position: right;"></div>
+
+    <div class="tl-year">
+      <p class="f2 heading--sanSerif">FLY TO ONE SPOT</p>
+    </div>
+
+    <div class="tl-content">
+      <h1>Check one spot</h1>
+      <p>Send the drone to a single 3 m square, take a close-up photo and see that spot's crop health and weeds.</p>
+    </div>
+
+  </div>
+ 
+</section>
+
+    <script type="text/javascript">
+      
+      jQuery(document).ready(function(){
+
+        jQuery('.ne_project').click(function(){
+
+          window.location = "./map.html";
+
+        });
+
+
+        jQuery('.ld_projects').click(function(){
+
+          window.location = "./all_projects.html";
+
+        });
+		
+		
+        jQuery('.fly_w3w').click(function(){
+
+          window.location = "./fly.html";
+
+        });
+
+        jQuery('.im_project').click(function(){
+
+          jQuery('input[type="file"]').click();
+
+        });
+		
+		
+		
+
+            // Check if projects exists else build it
+    const fs = require("fs"); // Or `import fs from "fs";` with ESM
+    if (fs.existsSync("projects")) {
+        // Do something
+        //alert('PROJECT ALREADY EXISTS');
+    } else {
+        //console.log("not exist");
+        fs.mkdir('projects', function() {
+            //fs.writeFile('',"");
+        });
+
+    }
+
+    // Check if projects exists else build it
+    if (fs.existsSync("projects_centers")) {
+        // Do something
+        //alert('PROJECT ALREADY EXISTS');
+    } else {
+        fs.mkdir('projects_centers', function() {
+            fs.writeFileSync('./projects_centers/centers.txt',"plan_name:0;x:0;y:0");
+        });
+    }
+
+      });
+    </script>
+
+    <script>
+    jQuery(document).ready(function(){
+
+        jQuery('input[type="file"]').change(function(){
+            var file = this.files[0];
+            if (!file) return;
+            // Electron 32+ removed File.path; webUtils gives the real path of a picked file.
+            var get_file_path = require('electron').webUtils.getPathForFile(file);
+            var project_name = file.name.replace(/\.zip$/i, '').trim().replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_-]/gu, '');
+            this.value = '';   // allow importing the same file again
+            if (!project_name) return alert('That file name cannot be used as a project name.');
+            extract_zip(get_file_path, project_name);
+        });
+
+        // Extract an exported project (.zip made by EXPORT PROJECT) into projects/<name>
+        function extract_zip(zip_path, project_name){
+            var path = require('path');
+            var fs = require('fs');
+            var zl = require('zip-lib');
+            var target = path.join(path.resolve(__dirname), 'projects', project_name);
+
+            zl.extract(zip_path, target).then(function() {
+                var data;
+                try {
+                    data = JSON.parse(load_project_polygon(target));
+                } catch (error) {
+                    fs.rmSync(target, { recursive: true, force: true });
+                    return alert('This zip is not an Eagle Eye project (map_data.geojson is missing).');
+                }
+
+                var polygonCenter = require('geojson-polygon-center');
+                var center = polygonCenter(data["features"][0]["geometry"]);
+                var center_text = center["coordinates"][0] + ',' + center["coordinates"][1];
+
+                // The project list reads preview_project.json; keep it consistent with the folder name.
+                fs.writeFileSync(path.join(target, 'preview_project.json'), JSON.stringify({ Name: project_name, Center: center_text }));
+
+                var load_centers = load_projects_centers();
+                var project_names = load_centers.split(",").map(function(value) {
+                    var temp_name = value.split("plan_name:");
+                    return temp_name[1] ? temp_name[1].split(";")[0] : '';
+                });
+                if (project_names.indexOf(project_name) === -1) {
+                    load_centers += ',plan_name:' + project_name + ';x:' + center["coordinates"][0] + ';y:' + center["coordinates"][1];
+                    fs.mkdirSync('projects_centers', { recursive: true });
+                    fs.writeFileSync('./projects_centers/centers.txt', load_centers);
+                }
+                alert('Project "' + project_name + '" imported. Open it from Load Project.');
+            }).catch(function(err) {
+                alert('Import failed: ' + err.message);
+            });
+        }
+
+
+        // Function in order to Call User database ( /login_system/users.txt)
+        function load_project_polygon(file_path) {
+            var fs = require('fs');
+            //var rimraf = require("rimraf");
+            //rimraf("/some/directory", function () { console.log("done"); });
+
+           try {
+                var contents = fs.readFileSync(file_path+'/map_data.geojson', 'utf8');
+            }
+            catch(error) {
+                 console.error('Cant find Map_data.geojson');
+            // expected output: ReferenceError: nonExistentFunction is not defined
+            // Note - error messages will vary depending on browser
+            }
+            
+            return contents;
+        }
+
+        // Function in order to Call User database ( /login_system/users.txt)
+        function load_projects_centers() {
+            var fs = require('fs');
+            var contents = fs.readFileSync('./projects_centers/centers.txt', 'utf8');
+            return contents;
+        }
+
+
+        
+
+
+        
+    });
+    </script>
+
+  </body>
+
+</html>

@@ -1,0 +1,73 @@
+/* Field workflow (js/atom2_workflow.js): a 7-step accordion with progress states.
+   Tokens come from css/theme.css. */
+.atom2_workflow { color: var(--ink); }
+.atom2_workflow .wf_step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; box-shadow: var(--shadow); overflow: hidden; }
+.atom2_workflow .wf_step.open { border-color: #BFD2C3; }
+.atom2_workflow .wf_head { display: flex; align-items: center; gap: 10px; padding: 11px 12px; cursor: pointer; font-weight: 650; font-size: 14px; user-select: none; }
+.atom2_workflow .wf_head:hover { background: #FAFAF6; }
+.atom2_workflow .wf_num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12.5px; font-weight: 700; border: 1.5px solid var(--border-strong); color: var(--muted); background: var(--surface); }
+.atom2_workflow .wf_step.current .wf_num { background: var(--forest); border-color: var(--forest); color: #fff; }
+.atom2_workflow .wf_step.done .wf_num { background: var(--leaf-50); border-color: var(--leaf); color: var(--leaf); font-size: 0; }
+.atom2_workflow .wf_step.done .wf_num::before { content: ""; width: 9px; height: 5px; border-left: 2px solid var(--leaf); border-bottom: 2px solid var(--leaf); transform: rotate(-45deg) translate(1px, -1px); }
+.atom2_workflow .wf_titles { flex: 1; min-width: 0; }
+.atom2_workflow .wf_summary { display: block; font-weight: 400; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.atom2_workflow .wf_head::after { content: ""; flex: none; width: 7px; height: 7px; border-right: 2px solid var(--subtle); border-bottom: 2px solid var(--subtle); transform: rotate(45deg); margin-right: 4px; transition: transform .15s; }
+.atom2_workflow .wf_step.open .wf_head::after { transform: rotate(-135deg); }
+.atom2_workflow .wf_body { display: none; padding: 2px 14px 14px 48px; }
+.atom2_workflow .wf_step.open .wf_body { display: block; }
+.atom2_workflow .wf_explain { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
+.atom2_workflow label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 8px 0 4px; }
+.atom2_workflow .wf_row { display: flex; gap: 8px; align-items: flex-end; }
+.atom2_workflow .wf_row > * { flex: 1; min-width: 0; }
+.atom2_workflow .wf_out { font-size: 12.5px; color: var(--ink); line-height: 1.5; margin-top: 8px; word-break: break-word; }
+.atom2_workflow .wf_out:empty { display: none; }
+.atom2_workflow .wf_help { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+.atom2_workflow .wf_help summary { cursor: pointer; color: var(--forest); font-weight: 600; }
+.atom2_workflow .wf_help ol { padding-left: 18px; margin: 6px 0; }
+.atom2_workflow .wf_spin { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--forest); border-right-color: transparent; border-radius: 50%;
+    animation: wfspin 0.8s linear infinite; vertical-align: -1px; margin-right: 4px; }
+@keyframes wfspin { to { transform: rotate(360deg); } }
+
+/* layer picker (step 5) */
+.atom2_workflow .wf_index_pick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.atom2_workflow .wf_idx { font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border-strong); cursor: pointer; color: var(--ink); background: var(--surface); }
+.atom2_workflow .wf_idx:hover { border-color: var(--forest); }
+.atom2_workflow .wf_idx.on { background: var(--forest); border-color: var(--forest); color: #fff; }
+.atom2_workflow .wf_idx.off { color: var(--muted); }
+.atom2_workflow .wf_legend { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-top: 10px; padding-top: 14px;
+    background: linear-gradient(90deg, #a50026, #f46d43, #fee08b, #a6d96a, #006837) top / 100% 10px no-repeat; border-radius: 3px; }
+
+/* close-up weed results */
+.atom2_workflow .wf_weed_list { margin-top: 8px; }
+.atom2_workflow .wf_weed { display: flex; gap: 10px; align-items: center; font-size: 12.5px; padding: 6px; margin-bottom: 6px; cursor: pointer;
+    background: var(--canvas); border-radius: var(--radius-sm); border-left: 4px solid var(--border-strong); }
+.atom2_workflow .wf_weed:hover { background: var(--forest-50); }
+.atom2_workflow .wf_weed.high { border-left-color: #8E2C9A; }
+.atom2_workflow .wf_weed.mid { border-left-color: #C98A1E; }
+.atom2_workflow .wf_weed.low { border-left-color: var(--leaf); }
+.atom2_workflow .wf_weed img { width: 68px; height: 48px; object-fit: cover; border-radius: 6px; }
+
+/* map markers + lightbox (also used on fly.html) */
+.wf_problem_icon span { display: block; width: 26px; height: 26px; line-height: 22px; border-radius: 50%; background: #C0392B; color: #fff;
+    border: 2px solid #fff; text-align: center; font: 700 12px system-ui, sans-serif; box-sizing: border-box; box-shadow: 0 1px 4px rgba(0,0,0,.45); }
+.wf_lightbox { position: fixed; inset: 0; background: rgba(15, 22, 17, 0.88); z-index: 100000; display: flex; align-items: center; justify-content: center; }
+.wf_lightbox .wf_lb_inner { position: relative; max-width: 94vw; text-align: center; color: #eee; font: 14px system-ui, sans-serif; }
+.wf_lightbox img { max-width: 46vw; max-height: 78vh; margin: 0 4px; border-radius: 6px; }
+.wf_lightbox .wf_lb_close { position: absolute; top: -36px; right: 0; font-size: 30px; cursor: pointer; color: #fff; }
+
+/* field health summary (step 6) */
+.atom2_workflow .wf_scores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.atom2_workflow .wf_score { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--canvas); position: relative; }
+.atom2_workflow .wf_score_k { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.atom2_workflow .wf_score_v { font-size: 34px; font-weight: 800; line-height: 1.1; margin: 4px 0 2px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.atom2_workflow .wf_score_v small { font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+.atom2_workflow .wf_score p { font-size: 12px; color: var(--muted); margin: 6px 0 0; line-height: 1.4; }
+.atom2_workflow .wf_pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 999px; }
+.atom2_workflow .wf_score.good { border-left: 4px solid #2E8B4E; }
+.atom2_workflow .wf_score.good .wf_pill { background: #E3F2E6; color: #1E6B38; }
+.atom2_workflow .wf_score.fair { border-left: 4px solid #D08A12; }
+.atom2_workflow .wf_score.fair .wf_pill { background: #FFF1D6; color: #8A5300; }
+.atom2_workflow .wf_score.poor { border-left: 4px solid #C0392B; }
+.atom2_workflow .wf_score.poor .wf_pill { background: #FCE4E1; color: #9E2A1E; }
+.atom2_workflow .wf_score_note { grid-column: 1 / -1; margin: 2px 0 0; }
