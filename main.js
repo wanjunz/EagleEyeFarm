@@ -1,5 +1,10 @@
 // main js file
-const {app, BrowserWindow, dialog, ipcMain} = require('electron');
+const {app, BrowserWindow, dialog, ipcMain, shell} = require('electron');
+const path = require('path');
+const projectFolders = require('./js/project_folders');
+
+// Delete a field: move its folder under projects/ to the Trash, so it can still be restored.
+projectFolders.registerTrashHandler(ipcMain, shell, path.join(__dirname, 'projects'));
 
 // Native folder picker for EXPORT PROJECT (renderer pages cannot open dialogs themselves).
 ipcMain.handle('cofly:choose-export-folder', async (event) => {
@@ -28,7 +33,6 @@ ipcMain.handle('cofly:choose-folder', async (event, title) => {
 	});
 	return result.canceled ? null : result.filePaths[0];
 });
-const path = require('path');
 const url = require('url');
 // hide warning on console log
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = true;

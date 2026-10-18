@@ -133,6 +133,12 @@ div#load_this_project div {
     margin-right: 2%;
 }
 
+.delete_it.armed {
+    background: #C0392B;
+    border-color: #C0392B;
+    color: #fff;
+}
+
 .delete_it:hover {
     background: #ff3c3cc7;
     border-color: #000;
@@ -247,10 +253,13 @@ jQuery(document).ready(function() {
         }
         listed++;
         var coords = pr_data["Center"].split(",");
-        //console.log(coords);
-        jQuery('div#sidenav-collapse-main').append('<div long="' + coords[0] + '"lat="' + coords[1] + '" class="project_button"> <label><i class="fas fa-map-pin"></i>' +pr_data["Name"] + '</label> </div>');
+        // the folder name is what identifies the field on disk (open, delete)
+        var $btn = jQuery('<div class="project_button"><label><i class="fas fa-map-pin"></i><span class="pb_name"></span></label></div>')
+            .attr({ long: coords[0], lat: coords[1], 'data-folder': file });
+        $btn.find('.pb_name').text(pr_data["Name"] || file);
+        jQuery('div#sidenav-collapse-main').append($btn);
         // Call Drawing pin func
-        draw_marks(pr_data["Name"],parseFloat(coords[0]),parseFloat(coords[1]));
+        draw_marks(file, pr_data["Name"] || file, parseFloat(coords[0]), parseFloat(coords[1]));
         
 
         });
@@ -261,17 +270,17 @@ jQuery(document).ready(function() {
     });
 
 
-    // Function gia drawing pins twn project
-    function draw_marks(name,lat,lon){
-        console.log(name,lat,lon);
+    // map pin per field, by folder name
+    var markers = {};
+    function draw_marks(folder, name, lat, lon){
+        if (!isFinite(lat) || !isFinite(lon)) return;
         var marker = L.marker(
             [lon, lat], {
                 title: name,
                 icon: greenIcon
             }
-        ).addTo(map).bindPopup('<h3>'+name+'</h3>');
-        L.DomUtil.addClass(marker._icon,name);
-
+        ).addTo(map).bindPopup(jQuery('<h3>').text(name)[0]);
+        markers[folder] = marker;
     }
 
     
@@ -301,8 +310,9 @@ jQuery(document).ready(function() {
         //console.log(lat,long);
         // show the field's own outline (falls back to its centre)
         if (window.cfFieldLayer) map.removeLayer(window.cfFieldLayer);
+        var folder = jQuery(this).attr('data-folder');
         try {
-            var gj = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'projects', jQuery(this).text().trim(), 'map_data.geojson'), 'utf8'));
+            var gj = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'projects', folder, 'map_data.geojson'), 'utf8'));
             window.cfFieldLayer = L.geoJson(gj, { style: { color: '#fec840', weight: 3, fillOpacity: 0.08 } }).addTo(map);
             map.fitBounds(window.cfFieldLayer.getBounds(), { padding: [60, 60], maxZoom: 18 });
         } catch (e) {
@@ -311,11 +321,11 @@ jQuery(document).ready(function() {
         //jQuery('.img.leaflet-marker-icon.leaflet-zoom-animated.leaflet-clickable').removeClass('marker_inactive');
 
         jQuery('img.leaflet-marker-icon.leaflet-zoom-animated').addClass('marker_inactive');
-        jQuery('.' + jQuery(this).text().replace(" ", "")).removeClass('marker_inactive');
-        jQuery('.load_it').attr('path', jQuery(this).text().replace(" ", ""));
-        jQuery('.delete_it').attr('path', jQuery(this).text().replace(" ", ""));
-        jQuery('.cf-selected-title').text(jQuery(this).text().trim());
-        jQuery('.delete_it').data('armed', false).text('Delete');
+        if (markers[folder] && markers[folder]._icon) jQuery(markers[folder]._icon).removeClass('marker_inactive');
+        jQuery('.load_it').attr('path', folder);
+        jQuery('.delete_it').attr('path', folder);
+        jQuery('.cf-selected-title').text(jQuery(this).find('.pb_name').text());
+        jQuery('.delete_it').removeClass('armed').data('armed', false).text('Delete');
         jQuery('div#load_this_project').css('display', 'flex').hide().fadeIn(150);
     });
 
@@ -339,47 +349,38 @@ jQuery(document).ready(function() {
 
 
 
-    // Trigger Delete function 
-    jQuery('.delete_it').click(function() {
-        // two-step delete: first click asks, second click (within 4 s) deletes
-        if (!jQuery(this).data('armed')) {
-            const b = jQuery(this);
-            b.data('armed', true).text('Delete permanently?');
-            setTimeout(function() { b.data('armed', false).text('Delete'); }, 4000);
+    // Delete: two clicks (the second within 4 s), then the field's folder goes to the Trash
+    var disarmTimer = null;
+    jQuery('.delete_it').click(async function() {
+        const b = jQuery(this);
+        const folder = b.attr('path');
+        if (!folder || b.data('busy')) return;
+        if (!b.data('armed')) {
+            b.data('armed', true).addClass('armed').text('Move to Trash?');
+            clearTimeout(disarmTimer);
+            disarmTimer = setTimeout(function() { b.data('armed', false).removeClass('armed').text('Delete'); }, 4000);
             return;
         }
-
-        //localStorage.setItem("LoadProject", jQuery(this).attr('path'));
-        
-        const path = require('path');
-        const fs = require('fs');
-        var running_on = path.resolve(__dirname);
-        
-        
-        var final_path = "" + running_on + "/projects/"+jQuery(this).attr('path');
-        
-        
-        
-        //rmdir directoryname
-        
-        rmDir = function(dirPath) {
-      try { var files = fs.readdirSync(dirPath); }
-      catch(e) { return; }
-      if (files.length > 0)
-        for (var i = 0; i < files.length; i++) {
-          var filePath = dirPath + '/' + files[i];
-          if (fs.statSync(filePath).isFile())
-            fs.unlinkSync(filePath);
-          else
-            rmDir(filePath);
+        clearTimeout(disarmTimer);
+        b.data('busy', true).text('Deleting…');
+        try {
+            await require('electron').ipcRenderer.invoke('eagleeye:trash-project', folder);
+        } catch (e) {
+            b.data('busy', false).data('armed', false).removeClass('armed').text('Delete');
+            jQuery('.cf-selected-title').text('Could not delete: ' + String(e.message).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
+            return;
         }
-      fs.rmdirSync(dirPath);
-    };
-    rmDir(final_path);
-
-
-
-
+        b.data('busy', false).data('armed', false).removeClass('armed').text('Delete').attr('path', '');
+        // update the page: list, pin, outline, panel
+        jQuery('.project_button').filter(function() { return jQuery(this).attr('data-folder') === folder; }).remove();
+        if (markers[folder]) { map.removeLayer(markers[folder]); delete markers[folder]; }
+        if (window.cfFieldLayer) { map.removeLayer(window.cfFieldLayer); window.cfFieldLayer = null; }
+        jQuery('img.leaflet-marker-icon.leaflet-zoom-animated').removeClass('marker_inactive');
+        jQuery('div#load_this_project').slideUp();
+        if (localStorage.getItem('LoadProject') === folder) localStorage.removeItem('LoadProject');
+        if (!jQuery('.project_button').length) {
+            jQuery('div#sidenav-collapse-main').append('<div class="no_projects"><label>No fields yet. Press <b>+ New field</b> to add one.</label></div>');
+        }
     });
 
 
